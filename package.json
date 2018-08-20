@@ -35,6 +35,8 @@
     "typescript": "^3.0.1"
   },
   "jest": {
+    "coverageDirectory": "./coverage/",
+    "collectCoverage": true,
     "moduleFileExtensions": [
       "ts",
       "js"
