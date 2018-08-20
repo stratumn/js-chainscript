@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+  - stable
+install:
+  - npm install
+  - npm install -g codecov
+before_script:
+  - npm run build
+script:
+  - npm test
+after_success:
+  - codecov
