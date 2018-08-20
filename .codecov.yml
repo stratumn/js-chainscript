@@ -29,7 +29,7 @@ parsers:
       macro: no
 
 ignore:
-  - "*_pb.js"
+  - "src/proto/*_pb.js"
 
 comment:
   layout: "header, diff"
