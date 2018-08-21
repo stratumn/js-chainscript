@@ -28,4 +28,12 @@ describe("link builder", () => {
     const link = new LinkBuilder("p", "m").build();
     expect(link.mapId()).toEqual("m");
   });
+
+  it("sets the link action", () => {
+    const lb = new LinkBuilder("p", "m");
+    lb.withAction("a");
+    const link = lb.build();
+
+    expect(link.action()).toEqual("a");
+  });
 });

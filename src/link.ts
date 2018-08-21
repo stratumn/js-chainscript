@@ -10,11 +10,24 @@ export class Link {
     this.link = link;
   }
 
-  /** @returns the link version. */
-  public version(): string {
-    return this.link.getVersion();
+  /**
+   * A link is usually created as a result of an action.
+   * @returns the link's action.
+   */
+  public action(): string {
+    const meta = this.link.getMeta();
+    if (!meta) {
+      throw ErrLinkMetaMissing;
+    }
+
+    return meta.getAction();
   }
 
+  /**
+   * The client id allows segment receivers to figure out how the segment was
+   * encoded and can be decoded.
+   * @returns the link's client id.
+   */
   public clientId(): string {
     const meta = this.link.getMeta();
     if (!meta) {
@@ -24,7 +37,10 @@ export class Link {
     return meta.getClientId();
   }
 
-  /** @returns the link's map id. */
+  /**
+   * A link always belongs to a specific process map.
+   * @returns the link's map id.
+   */
   public mapId(): string {
     const meta = this.link.getMeta();
     if (!meta) {
@@ -34,7 +50,10 @@ export class Link {
     return meta.getMapId();
   }
 
-  /** @returns the link's process name. */
+  /**
+   * A link always belong to an instance of a process.
+   * @returns the link's process name.
+   */
   public process(): string {
     const meta = this.link.getMeta();
     if (!meta) {
@@ -47,5 +66,13 @@ export class Link {
     }
 
     return process.getName();
+  }
+
+  /**
+   * The link version is used to properly serialize and deserialize it.
+   * @returns the link version.
+   */
+  public version(): string {
+    return this.link.getVersion();
   }
 }

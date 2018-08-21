@@ -13,6 +13,12 @@ import {
  * to set fields to valid values.
  */
 export interface ILinkBuilder {
+  /**
+   * Set the link action.
+   * The action is what caused the link to be created.
+   */
+  withAction(action: string): void;
+
   /** build the link. */
   build(): Link;
 }
@@ -47,6 +53,10 @@ export class LinkBuilder implements ILinkBuilder {
     meta.setClientId(constants.ClientId);
 
     this.link.setMeta(meta);
+  }
+
+  public withAction(action: string): void {
+    (this.link.getMeta() as PbLinkMeta).setAction(action);
   }
 
   public build(): Link {
