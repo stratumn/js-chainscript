@@ -1,7 +1,11 @@
-import { hello } from "./link";
+import { linkVersion } from "./link";
+import { Link } from "./proto/chainscript_pb";
 
-describe("hello", () => {
-  it("says hello", () => {
-    expect(hello()).toEqual("Hello ChainScript");
+describe("link", () => {
+  it("version", () => {
+    const link = new Link();
+    link.setVersion("0.42.0");
+
+    expect(linkVersion(link)).toEqual("0.42.0");
   });
 });
