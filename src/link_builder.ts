@@ -1,18 +1,10 @@
+import * as constants from "./const";
 import { Link } from "./link";
 import {
   Link as PbLink,
   LinkMeta as PbLinkMeta,
   Process as PbProcess
 } from "./proto/chainscript_pb";
-
-/**
- * LinkVersion_1_0_0 is the first version of the link encoding.
- * In that version we encode interfaces (link.data and link.meta.data) with
- * canonical JSON and hash the protobuf-encoded link bytes with SHA-256.
- */
-const LINK_VERSION_1_0_0 = "1.0.0";
-/** The current link version. */
-const LINK_VERSION = LINK_VERSION_1_0_0;
 
 /**
  * ILinkBuilder makes it easy to create links that adhere to the ChainScript
@@ -36,7 +28,7 @@ export class LinkBuilder implements ILinkBuilder {
 
   constructor(process: string, mapId: string) {
     this.link = new PbLink();
-    this.link.setVersion(LINK_VERSION);
+    this.link.setVersion(constants.LINK_VERSION);
 
     if (!process) {
       throw new TypeError("process is missing");
@@ -52,6 +44,7 @@ export class LinkBuilder implements ILinkBuilder {
     const meta = new PbLinkMeta();
     meta.setMapId(mapId);
     meta.setProcess(proc);
+    meta.setClientId(constants.ClientId);
 
     this.link.setMeta(meta);
   }

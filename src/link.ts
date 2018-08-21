@@ -1,5 +1,8 @@
 import { Link as PbLink } from "./proto/chainscript_pb";
 
+const ErrLinkMetaMissing = new TypeError("link meta is missing");
+const ErrLinkProcessMissing = new TypeError("link process is missing");
+
 export class Link {
   private link: PbLink;
 
@@ -12,11 +15,20 @@ export class Link {
     return this.link.getVersion();
   }
 
+  public clientId(): string {
+    const meta = this.link.getMeta();
+    if (!meta) {
+      throw ErrLinkMetaMissing;
+    }
+
+    return meta.getClientId();
+  }
+
   /** @returns the link's map id. */
   public mapId(): string {
     const meta = this.link.getMeta();
     if (!meta) {
-      throw new TypeError("link meta is missing");
+      throw ErrLinkMetaMissing;
     }
 
     return meta.getMapId();
@@ -26,12 +38,12 @@ export class Link {
   public process(): string {
     const meta = this.link.getMeta();
     if (!meta) {
-      throw new TypeError("link meta is missing");
+      throw ErrLinkMetaMissing;
     }
 
     const process = meta.getProcess();
     if (!process) {
-      throw new TypeError("link process is missing");
+      throw ErrLinkProcessMissing;
     }
 
     return process.getName();

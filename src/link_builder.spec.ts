@@ -6,6 +6,11 @@ describe("link builder", () => {
     expect(link.version()).toEqual("1.0.0");
   });
 
+  it("sets the client id", () => {
+    const link = new LinkBuilder("p", "m").build();
+    expect(link.clientId()).toEqual("github.com/stratumn/js-chainscript");
+  });
+
   it("throws if process is missing", () => {
     expect(() => new LinkBuilder("", "m")).toThrowError("process is missing");
   });
