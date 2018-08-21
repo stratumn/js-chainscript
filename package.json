@@ -5,6 +5,7 @@
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "scripts": {
+    "clean": "rm ./lib/*",
     "prepare": "npm run build",
     "build": "tsc",
     "lint": "tslint --project \"./tsconfig.json\"",
