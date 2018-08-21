@@ -5,8 +5,8 @@
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "scripts": {
-    "clean": "rm ./lib/*",
-    "prepare": "npm run build",
+    "clean": "rm -r ./lib",
+    "prepare": "npm run build && cp -r ./src/proto ./lib",
     "build": "tsc",
     "lint": "tslint --project \"./tsconfig.json\"",
     "test": "jest",
