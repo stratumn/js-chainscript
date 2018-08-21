@@ -1,9 +1,9 @@
-import { Link as LinkProto } from "./proto/chainscript_pb";
+import { Link as PbLink } from "./proto/chainscript_pb";
 
 export class Link {
-  private link: LinkProto;
+  private link: PbLink;
 
-  constructor(link: LinkProto) {
+  constructor(link: PbLink) {
     this.link = link;
   }
 
