@@ -51,6 +51,19 @@ export class Link {
   }
 
   /**
+   * The priority can be used to order links.
+   * @returns the link's priority.
+   */
+  public priority(): number {
+    const meta = this.link.getMeta();
+    if (!meta) {
+      throw ErrLinkMetaMissing;
+    }
+
+    return meta.getPriority();
+  }
+
+  /**
    * A link always belong to an instance of a process.
    * @returns the link's process name.
    */

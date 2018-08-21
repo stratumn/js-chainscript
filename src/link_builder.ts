@@ -16,8 +16,15 @@ export interface ILinkBuilder {
   /**
    * Set the link action.
    * The action is what caused the link to be created.
+   * @param action friendly name of the action.
    */
   withAction(action: string): void;
+
+  /**
+   * Set the link's priority. The priority is used to order links.
+   * @param priority a positive float.
+   */
+  withPriority(priority: number): void;
 
   /** build the link. */
   build(): Link;
@@ -57,6 +64,14 @@ export class LinkBuilder implements ILinkBuilder {
 
   public withAction(action: string): void {
     (this.link.getMeta() as PbLinkMeta).setAction(action);
+  }
+
+  public withPriority(priority: number): void {
+    if (priority < 0) {
+      throw new TypeError("priority needs to be positive");
+    }
+
+    (this.link.getMeta() as PbLinkMeta).setPriority(priority);
   }
 
   public build(): Link {
