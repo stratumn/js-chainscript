@@ -39,6 +39,13 @@ export interface ILinkBuilder {
    */
   withProcessState(state: string): void;
 
+  /**
+   * (Optional) Set the link's process step.
+   * It can be used to help deserialize link data or filter link search results.
+   * @param step link process step.
+   */
+  withStep(step: string): void;
+
   /** build the link. */
   build(): Link;
 }
@@ -99,6 +106,10 @@ export class LinkBuilder implements ILinkBuilder {
     const meta = this.link.getMeta() as PbLinkMeta;
     const process = meta.getProcess() as PbProcess;
     process.setState(state);
+  }
+
+  public withStep(step: string): void {
+    (this.link.getMeta() as PbLinkMeta).setStep(step);
   }
 
   public build(): Link {

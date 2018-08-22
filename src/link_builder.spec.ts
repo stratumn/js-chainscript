@@ -85,4 +85,14 @@ describe("link builder", () => {
       expect(link.process().state).toEqual("documents sent");
     });
   });
+
+  describe("step", () => {
+    it("sets process step", () => {
+      const lb = new LinkBuilder("p", "m");
+      lb.withStep("signing documents");
+      const link = lb.build();
+
+      expect(link.step()).toEqual("signing documents");
+    });
+  });
 });

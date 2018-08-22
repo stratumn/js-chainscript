@@ -96,6 +96,19 @@ export class Link {
   }
 
   /**
+   * (Optional) A link can be interpreted as a step in a process.
+   * @returns the corresponding process step.
+   */
+  public step(): string {
+    const meta = this.link.getMeta();
+    if (!meta) {
+      throw ErrLinkMetaMissing;
+    }
+
+    return meta.getStep();
+  }
+
+  /**
    * The link version is used to properly serialize and deserialize it.
    * @returns the link version.
    */
