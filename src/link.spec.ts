@@ -35,5 +35,6 @@ describe("link", () => {
     expect(() => link.priority()).toThrowError(errMetaMissing);
     expect(() => link.process()).toThrowError(errMetaMissing);
     expect(() => link.step()).toThrowError(errMetaMissing);
+    expect(() => link.tags()).toThrowError(errMetaMissing);
   });
 });
