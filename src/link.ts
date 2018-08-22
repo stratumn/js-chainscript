@@ -6,7 +6,7 @@ import { Link as PbLink, LinkMeta as PbLinkMeta } from "./proto/chainscript_pb";
 export const ErrLinkMetaMissing = new TypeError("link meta is missing");
 export const ErrLinkProcessMissing = new TypeError("link process is missing");
 export const ErrUnknownClientId = new TypeError(
-  "link was created with a unknown client: can't deserialize it"
+  "link was created with an unknown client: can't deserialize it"
 );
 export const ErrUnknownLinkVersion = new TypeError("unknown link version");
 
