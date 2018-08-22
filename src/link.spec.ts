@@ -4,7 +4,31 @@ import {
   ErrUnknownLinkVersion,
   Link
 } from "./link";
-import { Link as PbLink, LinkMeta as PbLinkMeta } from "./proto/chainscript_pb";
+import {
+  Link as PbLink,
+  LinkMeta as PbLinkMeta,
+  Process as PbProcess
+} from "./proto/chainscript_pb";
+
+/**
+ * Create a valid link.
+ */
+function createLink(): Link {
+  const proc = new PbProcess();
+  proc.setName("test_process");
+
+  const meta = new PbLinkMeta();
+  meta.setClientId("github.com/stratumn/go-chainscript");
+  meta.setMapId("test_map");
+  meta.setProcess(proc);
+
+  const pbLink = new PbLink();
+  pbLink.setMeta(meta);
+  pbLink.setVersion("1.0.0");
+
+  const link = new Link(pbLink);
+  return link;
+}
 
 describe("link", () => {
   describe("process", () => {
@@ -42,11 +66,12 @@ describe("link", () => {
     expect(() => link.tags()).toThrowError(ErrLinkMetaMissing);
   });
 
-  describe("set data", () => {
+  describe("data", () => {
     const customData = { name: "Sponge", surname: "Bob" };
 
     it("rejects missing meta", () => {
       const link = new Link(new PbLink());
+      expect(() => link.data()).toThrowError(ErrLinkMetaMissing);
       expect(() => link.setData(customData)).toThrowError(ErrLinkMetaMissing);
     });
 
@@ -58,6 +83,7 @@ describe("link", () => {
       pbLink.setMeta(meta);
 
       const link = new Link(pbLink);
+      expect(() => link.data()).toThrowError(ErrUnknownClientId);
       expect(() => link.setData(customData)).toThrowError(ErrUnknownClientId);
     });
 
@@ -70,9 +96,26 @@ describe("link", () => {
       pbLink.setVersion("0.42.0");
 
       const link = new Link(pbLink);
+      expect(() => link.data()).toThrowError(ErrUnknownLinkVersion);
       expect(() => link.setData(customData)).toThrowError(
         ErrUnknownLinkVersion
       );
+    });
+
+    it("sets custom object", () => {
+      const link = createLink();
+      link.setData(customData);
+
+      const data = link.data();
+      expect(data).toEqual(customData);
+    });
+
+    it("sets built-in type", () => {
+      const link = createLink();
+      link.setData(42);
+
+      const data = link.data();
+      expect(data).toEqual(42);
     });
   });
 });

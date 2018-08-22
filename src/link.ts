@@ -1,3 +1,4 @@
+import { parse, stringify } from "canonicaljson";
 import * as constants from "./const";
 import { Process } from "./process";
 import { Link as PbLink } from "./proto/chainscript_pb";
@@ -41,6 +42,21 @@ export class Link {
     }
 
     return meta.getClientId();
+  }
+
+  /**
+   * The link data (business logic details about the execution of a process step).
+   * @returns the object containing the link details.
+   */
+  public data(): any {
+    this.verifyCompatibility();
+
+    switch (this.version()) {
+      case constants.LINK_VERSION_1_0_0:
+        return parse(this.link.getData());
+      default:
+        throw ErrUnknownLinkVersion;
+    }
   }
 
   /**
@@ -109,7 +125,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-      // TODO
+        return this.link.setData(stringify(data));
       default:
         throw ErrUnknownLinkVersion;
     }
