@@ -118,4 +118,61 @@ describe("link", () => {
       expect(data).toEqual(42);
     });
   });
+
+  describe("metadata", () => {
+    const customMetadata = { name: "Batman", age: 42 };
+
+    it("rejects missing meta", () => {
+      const link = new Link(new PbLink());
+      expect(() => link.metadata()).toThrowError(ErrLinkMetaMissing);
+      expect(() => link.setMetadata(customMetadata)).toThrowError(
+        ErrLinkMetaMissing
+      );
+    });
+
+    it("rejects incompatible client id", () => {
+      const meta = new PbLinkMeta();
+      meta.setClientId("github.com/some-random-guy/with-custom-impl");
+
+      const pbLink = new PbLink();
+      pbLink.setMeta(meta);
+
+      const link = new Link(pbLink);
+      expect(() => link.metadata()).toThrowError(ErrUnknownClientId);
+      expect(() => link.setMetadata(customMetadata)).toThrowError(
+        ErrUnknownClientId
+      );
+    });
+
+    it("rejects unknown version", () => {
+      const meta = new PbLinkMeta();
+      meta.setClientId("github.com/stratumn/go-chainscript");
+
+      const pbLink = new PbLink();
+      pbLink.setMeta(meta);
+      pbLink.setVersion("0.42.0");
+
+      const link = new Link(pbLink);
+      expect(() => link.metadata()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.setMetadata(customMetadata)).toThrowError(
+        ErrUnknownLinkVersion
+      );
+    });
+
+    it("sets custom object", () => {
+      const link = createLink();
+      link.setMetadata(customMetadata);
+
+      const metadata = link.metadata();
+      expect(metadata).toEqual(customMetadata);
+    });
+
+    it("sets built-in type", () => {
+      const link = createLink();
+      link.setMetadata(42);
+
+      const metadata = link.metadata();
+      expect(metadata).toEqual(42);
+    });
+  });
 });

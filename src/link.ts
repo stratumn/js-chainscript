@@ -1,7 +1,7 @@
 import { parse, stringify } from "canonicaljson";
 import * as constants from "./const";
 import { Process } from "./process";
-import { Link as PbLink } from "./proto/chainscript_pb";
+import { Link as PbLink, LinkMeta as PbLinkMeta } from "./proto/chainscript_pb";
 
 export const ErrLinkMetaMissing = new TypeError("link meta is missing");
 export const ErrLinkProcessMissing = new TypeError("link process is missing");
@@ -73,6 +73,21 @@ export class Link {
   }
 
   /**
+   * The link metadata can contain a custom object.
+   * @returns the object containing the link metadata details.
+   */
+  public metadata(): any {
+    this.verifyCompatibility();
+
+    switch (this.version()) {
+      case constants.LINK_VERSION_1_0_0:
+        return parse((this.link.getMeta() as PbLinkMeta).getData());
+      default:
+        throw ErrUnknownLinkVersion;
+    }
+  }
+
+  /**
    * A link can have a parent, referenced by its link hash.
    * @returns the parent link hash.
    */
@@ -126,6 +141,21 @@ export class Link {
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
         return this.link.setData(stringify(data));
+      default:
+        throw ErrUnknownLinkVersion;
+    }
+  }
+
+  /**
+   * Set the given object as the link's metadata.
+   * @param data custom data to save with the link metadata.
+   */
+  public setMetadata(data: any): void {
+    this.verifyCompatibility();
+
+    switch (this.version()) {
+      case constants.LINK_VERSION_1_0_0:
+        return (this.link.getMeta() as PbLinkMeta).setData(stringify(data));
       default:
         throw ErrUnknownLinkVersion;
     }
