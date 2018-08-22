@@ -51,9 +51,14 @@ export class Link {
   public data(): any {
     this.verifyCompatibility();
 
+    const linkData = this.link.getData();
+    if (!linkData) {
+      return undefined;
+    }
+
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse(this.link.getData());
+        return parse(linkData);
       default:
         throw ErrUnknownLinkVersion;
     }
@@ -79,9 +84,14 @@ export class Link {
   public metadata(): any {
     this.verifyCompatibility();
 
+    const linkMetadata = (this.link.getMeta() as PbLinkMeta).getData();
+    if (!linkMetadata) {
+      return undefined;
+    }
+
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse((this.link.getMeta() as PbLinkMeta).getData());
+        return parse(linkMetadata);
       default:
         throw ErrUnknownLinkVersion;
     }

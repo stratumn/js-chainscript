@@ -38,6 +38,30 @@ describe("link builder", () => {
     });
   });
 
+  describe("data", () => {
+    it("sets custom link data", () => {
+      const link = new LinkBuilder("p", "m").withData({ score: 42 }).build();
+      expect(link.data()).toEqual({ score: 42 });
+    });
+
+    it("sets custom link metadata", () => {
+      const link = new LinkBuilder("p", "m")
+        .withMetadata({ updated_count: 24 })
+        .build();
+      expect(link.metadata()).toEqual({ updated_count: 24 });
+    });
+
+    it("handles empty data", () => {
+      const link = new LinkBuilder("p", "m").build();
+      expect(link.data()).toBeUndefined();
+    });
+
+    it("handles empty metadata", () => {
+      const link = new LinkBuilder("p", "m").build();
+      expect(link.metadata()).toBeUndefined();
+    });
+  });
+
   describe("parent", () => {
     it("rejects empty link hash", () => {
       const lb = new LinkBuilder("p", "m");

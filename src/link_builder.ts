@@ -21,6 +21,18 @@ export interface ILinkBuilder {
   withAction(action: string): ILinkBuilder;
 
   /**
+   * Set the link data (custom object containing business logic details).
+   * @param data link details.
+   */
+  withData(data: any): ILinkBuilder;
+
+  /**
+   * Set the link metadata (custom object containing business logic details).
+   * @param data link metadata.
+   */
+  withMetadata(data: any): ILinkBuilder;
+
+  /**
    * Set the link's parent.
    * @param linkHash parent's link hash.
    */
@@ -65,6 +77,8 @@ export interface ILinkBuilder {
  */
 export class LinkBuilder implements ILinkBuilder {
   private link: PbLink;
+  private linkData: any;
+  private linkMetadata: any;
 
   constructor(process: string, mapId: string) {
     this.link = new PbLink();
@@ -91,6 +105,16 @@ export class LinkBuilder implements ILinkBuilder {
 
   public withAction(action: string): ILinkBuilder {
     (this.link.getMeta() as PbLinkMeta).setAction(action);
+    return this;
+  }
+
+  public withData(data: any): ILinkBuilder {
+    this.linkData = data;
+    return this;
+  }
+
+  public withMetadata(data: any): ILinkBuilder {
+    this.linkMetadata = data;
     return this;
   }
 
@@ -134,6 +158,16 @@ export class LinkBuilder implements ILinkBuilder {
   }
 
   public build(): Link {
-    return new Link(this.link);
+    const link = new Link(this.link);
+
+    if (this.linkData) {
+      link.setData(this.linkData);
+    }
+
+    if (this.linkMetadata) {
+      link.setMetadata(this.linkMetadata);
+    }
+
+    return link;
   }
 }

@@ -92,6 +92,7 @@ describe("link", () => {
       meta.setClientId("github.com/stratumn/go-chainscript");
 
       const pbLink = new PbLink();
+      pbLink.setData("42");
       pbLink.setMeta(meta);
       pbLink.setVersion("0.42.0");
 
@@ -147,6 +148,7 @@ describe("link", () => {
     it("rejects unknown version", () => {
       const meta = new PbLinkMeta();
       meta.setClientId("github.com/stratumn/go-chainscript");
+      meta.setData("42");
 
       const pbLink = new PbLink();
       pbLink.setMeta(meta);
