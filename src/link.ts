@@ -51,6 +51,19 @@ export class Link {
   }
 
   /**
+   * A link can have a parent, referenced by its link hash.
+   * @returns the parent link hash.
+   */
+  public prevLinkHash(): Uint8Array {
+    const meta = this.link.getMeta();
+    if (!meta) {
+      throw ErrLinkMetaMissing;
+    }
+
+    return meta.getPrevLinkHash_asU8();
+  }
+
+  /**
    * The priority can be used to order links.
    * @returns the link's priority.
    */

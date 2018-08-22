@@ -41,6 +41,21 @@ describe("link builder", () => {
     });
   });
 
+  describe("parent", () => {
+    it("rejects empty link hash", () => {
+      const lb = new LinkBuilder("p", "m");
+      expect(() => lb.withParent(new Uint8Array([]))).toThrowError();
+    });
+
+    it("sets parent link hash", () => {
+      const lb = new LinkBuilder("p", "m");
+      lb.withParent(new Uint8Array([42, 42]));
+      const link = lb.build();
+
+      expect(link.prevLinkHash()).toEqual(new Uint8Array([42, 42]));
+    });
+  });
+
   describe("priority", () => {
     it("defaults to 0", () => {
       const link = new LinkBuilder("p", "m").build();

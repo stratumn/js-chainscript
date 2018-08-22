@@ -21,6 +21,12 @@ export interface ILinkBuilder {
   withAction(action: string): void;
 
   /**
+   * Set the link's parent.
+   * @param linkHash parent's link hash.
+   */
+  withParent(linkHash: Uint8Array): void;
+
+  /**
    * Set the link's priority. The priority is used to order links.
    * @param priority a positive float.
    */
@@ -64,6 +70,14 @@ export class LinkBuilder implements ILinkBuilder {
 
   public withAction(action: string): void {
     (this.link.getMeta() as PbLinkMeta).setAction(action);
+  }
+
+  public withParent(linkHash: Uint8Array): void {
+    if (!linkHash || linkHash.length === 0) {
+      throw new TypeError("link hash is missing");
+    }
+
+    (this.link.getMeta() as PbLinkMeta).setPrevLinkHash(linkHash);
   }
 
   public withPriority(priority: number): void {
