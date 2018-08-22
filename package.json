@@ -30,7 +30,8 @@
   },
   "homepage": "https://github.com/stratumn/js-chainscript#readme",
   "dependencies": {
-    "canonicaljson": "^1.0.1"
+    "canonicaljson": "^1.0.1",
+    "fast-sha256": "^1.1.0"
   },
   "devDependencies": {
     "@types/google-protobuf": "^3.2.7",

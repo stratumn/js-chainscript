@@ -1,7 +1,9 @@
 import { parse, stringify } from "canonicaljson";
+import sha256 from "fast-sha256";
 import * as constants from "./const";
 import { Process } from "./process";
 import { Link as PbLink, LinkMeta as PbLinkMeta } from "./proto/chainscript_pb";
+import { Segment } from "./segment";
 
 export const ErrLinkMetaMissing = new TypeError("link meta is missing");
 export const ErrLinkProcessMissing = new TypeError("link process is missing");
@@ -10,6 +12,10 @@ export const ErrUnknownClientId = new TypeError(
 );
 export const ErrUnknownLinkVersion = new TypeError("unknown link version");
 
+/**
+ * A link is the immutable part of a segment.
+ * A link contains all the data that represents a process' step.
+ */
 export class Link {
   private link: PbLink;
 
@@ -59,6 +65,21 @@ export class Link {
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
         return parse(linkData);
+      default:
+        throw ErrUnknownLinkVersion;
+    }
+  }
+
+  /**
+   * Serialize the link and compute a hash of the resulting bytes.
+   * The serialization and hashing algorithm used depend on the link version.
+   * @returns the hash bytes.
+   */
+  public hash(): Uint8Array {
+    switch (this.version()) {
+      case constants.LINK_VERSION_1_0_0:
+        const linkBytes = this.link.serializeBinary();
+        return sha256(linkBytes);
       default:
         throw ErrUnknownLinkVersion;
     }
@@ -139,6 +160,14 @@ export class Link {
     }
 
     return new Process(process.getName(), process.getState());
+  }
+
+  /**
+   * Create a segment from the link.
+   * @returns the segment wrapping the link.
+   */
+  public segmentify(): Segment {
+    return new Segment(this.link);
   }
 
   /**

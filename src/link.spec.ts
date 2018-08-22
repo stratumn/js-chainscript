@@ -177,4 +177,44 @@ describe("link", () => {
       expect(metadata).toEqual(42);
     });
   });
+
+  describe("hash", () => {
+    it("rejects unknown version", () => {
+      const pbLink = new PbLink();
+      pbLink.setVersion("0.42.0");
+
+      const link = new Link(pbLink);
+      expect(() => link.hash()).toThrowError(ErrUnknownLinkVersion);
+    });
+
+    it("hashes link", () => {
+      const link = createLink();
+
+      const h1 = link.hash();
+      expect(h1).toHaveLength(32);
+
+      link.setData(42);
+      const h2 = link.hash();
+      expect(h2).toHaveLength(32);
+      expect(h2).not.toEqual(h1);
+    });
+  });
+
+  describe("segmentify", () => {
+    it("rejects unknown version", () => {
+      const pbLink = new PbLink();
+      pbLink.setVersion("0.42.0");
+
+      const link = new Link(pbLink);
+      expect(() => link.segmentify()).toThrowError(ErrUnknownLinkVersion);
+    });
+
+    it("hashes link in segment meta", () => {
+      const link = createLink();
+      const segment = link.segmentify();
+
+      expect(segment.link()).toEqual(link);
+      expect(segment.linkHash()).toEqual(link.hash());
+    });
+  });
 });
