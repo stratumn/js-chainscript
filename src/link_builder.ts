@@ -18,40 +18,40 @@ export interface ILinkBuilder {
    * The action is what caused the link to be created.
    * @param action friendly name of the action.
    */
-  withAction(action: string): void;
+  withAction(action: string): ILinkBuilder;
 
   /**
    * Set the link's parent.
    * @param linkHash parent's link hash.
    */
-  withParent(linkHash: Uint8Array): void;
+  withParent(linkHash: Uint8Array): ILinkBuilder;
 
   /**
    * Set the link's priority. The priority is used to order links.
    * @param priority a positive float.
    */
-  withPriority(priority: number): void;
+  withPriority(priority: number): ILinkBuilder;
 
   /**
    * (Optional) Set the link process' state.
    * The process can be in a specific state depending on the actions taken.
    * @param state process state after the link action.
    */
-  withProcessState(state: string): void;
+  withProcessState(state: string): ILinkBuilder;
 
   /**
    * (Optional) Set the link's process step.
    * It can be used to help deserialize link data or filter link search results.
    * @param step link process step.
    */
-  withStep(step: string): void;
+  withStep(step: string): ILinkBuilder;
 
   /**
    * (Optional) A link can be tagged.
    * Tags are useful to filter link search results.
    * @param tags link tags.
    */
-  withTags(tags: string[]): void;
+  withTags(tags: string[]): ILinkBuilder;
 
   /** build the link. */
   build(): Link;
@@ -89,42 +89,48 @@ export class LinkBuilder implements ILinkBuilder {
     this.link.setMeta(meta);
   }
 
-  public withAction(action: string): void {
+  public withAction(action: string): ILinkBuilder {
     (this.link.getMeta() as PbLinkMeta).setAction(action);
+    return this;
   }
 
-  public withParent(linkHash: Uint8Array): void {
+  public withParent(linkHash: Uint8Array): ILinkBuilder {
     if (!linkHash || linkHash.length === 0) {
       throw new TypeError("link hash is missing");
     }
 
     (this.link.getMeta() as PbLinkMeta).setPrevLinkHash(linkHash);
+    return this;
   }
 
-  public withPriority(priority: number): void {
+  public withPriority(priority: number): ILinkBuilder {
     if (priority < 0) {
       throw new TypeError("priority needs to be positive");
     }
 
     (this.link.getMeta() as PbLinkMeta).setPriority(priority);
+    return this;
   }
 
-  public withProcessState(state: string): void {
+  public withProcessState(state: string): ILinkBuilder {
     const meta = this.link.getMeta() as PbLinkMeta;
     const process = meta.getProcess() as PbProcess;
     process.setState(state);
+    return this;
   }
 
-  public withStep(step: string): void {
+  public withStep(step: string): ILinkBuilder {
     (this.link.getMeta() as PbLinkMeta).setStep(step);
+    return this;
   }
 
-  public withTags(tags: string[]): void {
+  public withTags(tags: string[]): ILinkBuilder {
     const meta = this.link.getMeta() as PbLinkMeta;
     const oldTags = meta.getTagsList();
     const newTags = tags.filter(t => t);
 
     meta.setTagsList(oldTags.concat(newTags));
+    return this;
   }
 
   public build(): Link {

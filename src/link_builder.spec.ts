@@ -33,10 +33,7 @@ describe("link builder", () => {
 
   describe("action", () => {
     it("sets the link action", () => {
-      const lb = new LinkBuilder("p", "m");
-      lb.withAction("a");
-      const link = lb.build();
-
+      const link = new LinkBuilder("p", "m").withAction("a").build();
       expect(link.action()).toEqual("a");
     });
   });
@@ -48,10 +45,9 @@ describe("link builder", () => {
     });
 
     it("sets parent link hash", () => {
-      const lb = new LinkBuilder("p", "m");
-      lb.withParent(new Uint8Array([42, 42]));
-      const link = lb.build();
-
+      const link = new LinkBuilder("p", "m")
+        .withParent(new Uint8Array([42, 42]))
+        .build();
       expect(link.prevLinkHash()).toEqual(new Uint8Array([42, 42]));
     });
   });
@@ -68,49 +64,40 @@ describe("link builder", () => {
     });
 
     it("sets valid priority", () => {
-      const lb = new LinkBuilder("p", "m");
-      lb.withPriority(42.1);
-      const link = lb.build();
-
+      const link = new LinkBuilder("p", "m").withPriority(42.1).build();
       expect(link.priority()).toEqual(42.1);
     });
   });
 
   describe("process", () => {
     it("sets process state", () => {
-      const lb = new LinkBuilder("p", "m");
-      lb.withProcessState("documents sent");
-      const link = lb.build();
-
+      const link = new LinkBuilder("p", "m")
+        .withProcessState("documents sent")
+        .build();
       expect(link.process().state).toEqual("documents sent");
     });
   });
 
   describe("step", () => {
     it("sets process step", () => {
-      const lb = new LinkBuilder("p", "m");
-      lb.withStep("signing documents");
-      const link = lb.build();
-
+      const link = new LinkBuilder("p", "m")
+        .withStep("signing documents")
+        .build();
       expect(link.step()).toEqual("signing documents");
     });
   });
 
   describe("tags", () => {
     it("sets tags multiple times", () => {
-      const lb = new LinkBuilder("p", "m");
-      lb.withTags(["tag1", "tag2"]);
-      lb.withTags(["tag3"]);
-      const link = lb.build();
-
+      const link = new LinkBuilder("p", "m")
+        .withTags(["tag1", "tag2"])
+        .withTags(["tag3"])
+        .build();
       expect(link.tags()).toEqual(["tag1", "tag2", "tag3"]);
     });
 
     it("filters empty tags", () => {
-      const lb = new LinkBuilder("p", "m");
-      lb.withTags(["tag", ""]);
-      const link = lb.build();
-
+      const link = new LinkBuilder("p", "m").withTags(["tag", ""]).build();
       expect(link.tags()).toEqual(["tag"]);
     });
   });
