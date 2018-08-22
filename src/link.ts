@@ -109,6 +109,20 @@ export class Link {
   }
 
   /**
+   * (Optional) A link can be tagged.
+   * Tags are useful to filter link search results.
+   * @returns link tags.
+   */
+  public tags(): string[] {
+    const meta = this.link.getMeta();
+    if (!meta) {
+      throw ErrLinkMetaMissing;
+    }
+
+    return meta.getTagsList();
+  }
+
+  /**
    * The link version is used to properly serialize and deserialize it.
    * @returns the link version.
    */

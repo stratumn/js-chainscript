@@ -95,4 +95,23 @@ describe("link builder", () => {
       expect(link.step()).toEqual("signing documents");
     });
   });
+
+  describe("tags", () => {
+    it("sets tags multiple times", () => {
+      const lb = new LinkBuilder("p", "m");
+      lb.withTags(["tag1", "tag2"]);
+      lb.withTags(["tag3"]);
+      const link = lb.build();
+
+      expect(link.tags()).toEqual(["tag1", "tag2", "tag3"]);
+    });
+
+    it("filters empty tags", () => {
+      const lb = new LinkBuilder("p", "m");
+      lb.withTags(["tag", ""]);
+      const link = lb.build();
+
+      expect(link.tags()).toEqual(["tag"]);
+    });
+  });
 });

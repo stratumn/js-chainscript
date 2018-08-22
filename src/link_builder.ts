@@ -46,6 +46,13 @@ export interface ILinkBuilder {
    */
   withStep(step: string): void;
 
+  /**
+   * (Optional) A link can be tagged.
+   * Tags are useful to filter link search results.
+   * @param tags link tags.
+   */
+  withTags(tags: string[]): void;
+
   /** build the link. */
   build(): Link;
 }
@@ -110,6 +117,14 @@ export class LinkBuilder implements ILinkBuilder {
 
   public withStep(step: string): void {
     (this.link.getMeta() as PbLinkMeta).setStep(step);
+  }
+
+  public withTags(tags: string[]): void {
+    const meta = this.link.getMeta() as PbLinkMeta;
+    const oldTags = meta.getTagsList();
+    const newTags = tags.filter(t => t);
+
+    meta.setTagsList(oldTags.concat(newTags));
   }
 
   public build(): Link {
