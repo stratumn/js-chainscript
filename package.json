@@ -29,6 +29,9 @@
     "url": "https://github.com/stratumn/js-chainscript/issues"
   },
   "homepage": "https://github.com/stratumn/js-chainscript#readme",
+  "dependencies": {
+    "canonicaljson": "^1.0.1"
+  },
   "devDependencies": {
     "@types/google-protobuf": "^3.2.7",
     "@types/jest": "^23.3.1",

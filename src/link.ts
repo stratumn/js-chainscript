@@ -1,8 +1,14 @@
+import { parse, stringify } from "canonicaljson";
+import * as constants from "./const";
 import { Process } from "./process";
-import { Link as PbLink } from "./proto/chainscript_pb";
+import { Link as PbLink, LinkMeta as PbLinkMeta } from "./proto/chainscript_pb";
 
-const ErrLinkMetaMissing = new TypeError("link meta is missing");
-const ErrLinkProcessMissing = new TypeError("link process is missing");
+export const ErrLinkMetaMissing = new TypeError("link meta is missing");
+export const ErrLinkProcessMissing = new TypeError("link process is missing");
+export const ErrUnknownClientId = new TypeError(
+  "link was created with an unknown client: can't deserialize it"
+);
+export const ErrUnknownLinkVersion = new TypeError("unknown link version");
 
 export class Link {
   private link: PbLink;
@@ -39,6 +45,26 @@ export class Link {
   }
 
   /**
+   * The link data (business logic details about the execution of a process step).
+   * @returns the object containing the link details.
+   */
+  public data(): any {
+    this.verifyCompatibility();
+
+    const linkData = this.link.getData();
+    if (!linkData) {
+      return undefined;
+    }
+
+    switch (this.version()) {
+      case constants.LINK_VERSION_1_0_0:
+        return parse(linkData);
+      default:
+        throw ErrUnknownLinkVersion;
+    }
+  }
+
+  /**
    * A link always belongs to a specific process map.
    * @returns the link's map id.
    */
@@ -49,6 +75,26 @@ export class Link {
     }
 
     return meta.getMapId();
+  }
+
+  /**
+   * The link metadata can contain a custom object.
+   * @returns the object containing the link metadata details.
+   */
+  public metadata(): any {
+    this.verifyCompatibility();
+
+    const linkMetadata = (this.link.getMeta() as PbLinkMeta).getData();
+    if (!linkMetadata) {
+      return undefined;
+    }
+
+    switch (this.version()) {
+      case constants.LINK_VERSION_1_0_0:
+        return parse(linkMetadata);
+      default:
+        throw ErrUnknownLinkVersion;
+    }
   }
 
   /**
@@ -96,6 +142,36 @@ export class Link {
   }
 
   /**
+   * Set the given object as the link's data.
+   * @param data custom data to save with the link.
+   */
+  public setData(data: any): void {
+    this.verifyCompatibility();
+
+    switch (this.version()) {
+      case constants.LINK_VERSION_1_0_0:
+        return this.link.setData(stringify(data));
+      default:
+        throw ErrUnknownLinkVersion;
+    }
+  }
+
+  /**
+   * Set the given object as the link's metadata.
+   * @param data custom data to save with the link metadata.
+   */
+  public setMetadata(data: any): void {
+    this.verifyCompatibility();
+
+    switch (this.version()) {
+      case constants.LINK_VERSION_1_0_0:
+        return (this.link.getMeta() as PbLinkMeta).setData(stringify(data));
+      default:
+        throw ErrUnknownLinkVersion;
+    }
+  }
+
+  /**
    * (Optional) A link can be interpreted as a step in a process.
    * @returns the corresponding process step.
    */
@@ -128,5 +204,26 @@ export class Link {
    */
   public version(): string {
     return this.link.getVersion();
+  }
+
+  /**
+   * Check if the link is compatible with the current library.
+   * If not compatible, will throw an exception.
+   */
+  private verifyCompatibility(): void {
+    const meta = this.link.getMeta();
+    if (!meta) {
+      throw ErrLinkMetaMissing;
+    }
+
+    const clientId = meta.getClientId();
+    const compatibleClients = [
+      constants.ClientId,
+      "github.com/stratumn/go-chainscript"
+    ];
+
+    if (compatibleClients.indexOf(clientId) < 0) {
+      throw ErrUnknownClientId;
+    }
   }
 }
