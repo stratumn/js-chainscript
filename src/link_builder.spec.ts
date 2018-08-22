@@ -18,7 +18,7 @@ describe("link builder", () => {
 
     it("sets the process name", () => {
       const link = new LinkBuilder("p", "m").build();
-      expect(link.process()).toEqual("p");
+      expect(link.process().name).toEqual("p");
     });
 
     it("throws if map id is missing", () => {
@@ -73,6 +73,16 @@ describe("link builder", () => {
       const link = lb.build();
 
       expect(link.priority()).toEqual(42.1);
+    });
+  });
+
+  describe("process", () => {
+    it("sets process state", () => {
+      const lb = new LinkBuilder("p", "m");
+      lb.withProcessState("documents sent");
+      const link = lb.build();
+
+      expect(link.process().state).toEqual("documents sent");
     });
   });
 });

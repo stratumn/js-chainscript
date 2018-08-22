@@ -1,3 +1,4 @@
+import { Process } from "./process";
 import { Link as PbLink } from "./proto/chainscript_pb";
 
 const ErrLinkMetaMissing = new TypeError("link meta is missing");
@@ -80,7 +81,7 @@ export class Link {
    * A link always belong to an instance of a process.
    * @returns the link's process name.
    */
-  public process(): string {
+  public process(): Process {
     const meta = this.link.getMeta();
     if (!meta) {
       throw ErrLinkMetaMissing;
@@ -91,7 +92,7 @@ export class Link {
       throw ErrLinkProcessMissing;
     }
 
-    return process.getName();
+    return new Process(process.getName(), process.getState());
   }
 
   /**

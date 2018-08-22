@@ -32,6 +32,13 @@ export interface ILinkBuilder {
    */
   withPriority(priority: number): void;
 
+  /**
+   * (Optional) Set the link process' state.
+   * The process can be in a specific state depending on the actions taken.
+   * @param state process state after the link action.
+   */
+  withProcessState(state: string): void;
+
   /** build the link. */
   build(): Link;
 }
@@ -86,6 +93,12 @@ export class LinkBuilder implements ILinkBuilder {
     }
 
     (this.link.getMeta() as PbLinkMeta).setPriority(priority);
+  }
+
+  public withProcessState(state: string): void {
+    const meta = this.link.getMeta() as PbLinkMeta;
+    const process = meta.getProcess() as PbProcess;
+    process.setState(state);
   }
 
   public build(): Link {
