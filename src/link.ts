@@ -2,7 +2,11 @@ import { parse, stringify } from "canonicaljson";
 import sha256 from "fast-sha256";
 import * as constants from "./const";
 import { Process } from "./process";
-import { Link as PbLink, LinkMeta as PbLinkMeta } from "./proto/chainscript_pb";
+import {
+  Link as PbLink,
+  LinkMeta as PbLinkMeta,
+  Segment as PbSegment
+} from "./proto/chainscript_pb";
 import { Segment } from "./segment";
 
 export const ErrLinkMetaMissing = new TypeError("link meta is missing");
@@ -11,6 +15,16 @@ export const ErrUnknownClientId = new TypeError(
   "link was created with an unknown client: can't deserialize it"
 );
 export const ErrUnknownLinkVersion = new TypeError("unknown link version");
+
+/**
+ * Deserialize a link.
+ * @param linkBytes encoded bytes.
+ * @returns the deserialized link.
+ */
+export function deserialize(linkBytes: Uint8Array): Link {
+  const pbLink = PbLink.deserializeBinary(linkBytes);
+  return new Link(pbLink);
+}
 
 /**
  * A link is the immutable part of a segment.
@@ -57,14 +71,14 @@ export class Link {
   public data(): any {
     this.verifyCompatibility();
 
-    const linkData = this.link.getData();
+    const linkData = this.link.getData_asB64();
     if (!linkData) {
       return undefined;
     }
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse(linkData);
+        return parse(atob(linkData));
       default:
         throw ErrUnknownLinkVersion;
     }
@@ -105,14 +119,14 @@ export class Link {
   public metadata(): any {
     this.verifyCompatibility();
 
-    const linkMetadata = (this.link.getMeta() as PbLinkMeta).getData();
+    const linkMetadata = (this.link.getMeta() as PbLinkMeta).getData_asB64();
     if (!linkMetadata) {
       return undefined;
     }
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse(linkMetadata);
+        return parse(atob(linkMetadata));
       default:
         throw ErrUnknownLinkVersion;
     }
@@ -167,7 +181,17 @@ export class Link {
    * @returns the segment wrapping the link.
    */
   public segmentify(): Segment {
-    return new Segment(this.link);
+    const pbSegment = new PbSegment();
+    pbSegment.setLink(this.link);
+    return new Segment(pbSegment);
+  }
+
+  /**
+   * Serialize the link.
+   * @returns link bytes.
+   */
+  public serialize(): Uint8Array {
+    return this.link.serializeBinary();
   }
 
   /**
@@ -179,7 +203,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return this.link.setData(stringify(data));
+        return this.link.setData(btoa(stringify(data)));
       default:
         throw ErrUnknownLinkVersion;
     }
@@ -194,7 +218,9 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return (this.link.getMeta() as PbLinkMeta).setData(stringify(data));
+        return (this.link.getMeta() as PbLinkMeta).setData(
+          btoa(stringify(data))
+        );
       default:
         throw ErrUnknownLinkVersion;
     }
