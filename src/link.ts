@@ -7,6 +7,7 @@ import {
   LinkMeta as PbLinkMeta,
   Segment as PbSegment
 } from "./proto/chainscript_pb";
+import { LinkReference } from "./ref";
 import { Segment } from "./segment";
 
 export const ErrLinkMetaMissing = new TypeError("link meta is missing");
@@ -174,6 +175,22 @@ export class Link {
     }
 
     return new Process(process.getName(), process.getState());
+  }
+
+  /**
+   * A link can contain references to other links.
+   * @returns referenced links.
+   */
+  public refs(): LinkReference[] {
+    const meta = this.link.getMeta();
+    if (!meta) {
+      throw ErrLinkMetaMissing;
+    }
+
+    const pbRefs = meta.getRefsList();
+    return pbRefs.map(
+      ref => new LinkReference(ref.getLinkHash_asU8(), ref.getProcess())
+    );
   }
 
   /**

@@ -1,4 +1,5 @@
 import { LinkBuilder } from "./link_builder";
+import { ErrMissingLinkHash, ErrMissingProcess, LinkReference } from "./ref";
 
 describe("link builder", () => {
   describe("defaults", () => {
@@ -123,6 +124,46 @@ describe("link builder", () => {
     it("filters empty tags", () => {
       const link = new LinkBuilder("p", "m").withTags(["tag", ""]).build();
       expect(link.tags()).toEqual(["tag"]);
+    });
+  });
+
+  describe("refs", () => {
+    it("rejects reference missing process", () => {
+      const validRef = new LinkReference(Uint8Array.from([42]), "p1");
+      const invalidRef = new LinkReference(Uint8Array.from([42]), "p1");
+      invalidRef.process = "";
+
+      expect(() =>
+        new LinkBuilder("p", "m").withRefs([validRef, invalidRef])
+      ).toThrowError(ErrMissingProcess);
+    });
+
+    it("rejects reference missing link hash", () => {
+      const validRef = new LinkReference(Uint8Array.from([42]), "p1");
+      const invalidRef = new LinkReference(Uint8Array.from([42]), "p1");
+      invalidRef.linkHash = new Uint8Array(0);
+
+      expect(() =>
+        new LinkBuilder("p", "m").withRefs([validRef, invalidRef])
+      ).toThrowError(ErrMissingLinkHash);
+    });
+
+    it("adds multiple references", () => {
+      const ref1 = new LinkReference(Uint8Array.from([42]), "p1");
+      const ref2 = new LinkReference(Uint8Array.from([42]), "p2");
+
+      const link = new LinkBuilder("p", "m")
+        .withRefs([ref1])
+        .withRefs([ref2])
+        .build();
+
+      expect(link.refs()).toHaveLength(2);
+      expect(link.refs()).toEqual([ref1, ref2]);
+    });
+
+    it("has no references", () => {
+      const link = new LinkBuilder("p", "m").build();
+      expect(link.refs()).toHaveLength(0);
     });
   });
 });
