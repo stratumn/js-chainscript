@@ -5,6 +5,18 @@ import {
   SegmentMeta as PbSegmentMeta
 } from "./proto/chainscript_pb";
 
+export const ErrMissingLink = new TypeError("link is missing");
+
+/**
+ * Deserialize a segment.
+ * @param segmentBytes encoded bytes.
+ * @returns the deserialized segment.
+ */
+export function deserialize(segmentBytes: Uint8Array): Segment {
+  const pbSegment = PbSegment.deserializeBinary(segmentBytes);
+  return new Segment(pbSegment);
+}
+
 /**
  * A segment describes an atomic step in your process.
  */
@@ -12,15 +24,23 @@ export class Segment {
   private pbLink: PbLink;
   private pbSegment: PbSegment;
 
-  constructor(pbLink: PbLink) {
+  constructor(pbSegment: PbSegment) {
+    const pbLink = pbSegment.getLink();
+    if (!pbLink) {
+      throw ErrMissingLink;
+    }
+
     this.pbLink = pbLink;
+    this.pbSegment = pbSegment;
+
+    let meta = this.pbSegment.getMeta();
+    if (!meta) {
+      meta = new PbSegmentMeta();
+      this.pbSegment.setMeta(meta);
+    }
 
     const link = new Link(pbLink);
-    const segmentMeta = new PbSegmentMeta();
-    segmentMeta.setLinkHash(link.hash());
-
-    this.pbSegment = new PbSegment();
-    this.pbSegment.setMeta(segmentMeta);
+    meta.setLinkHash(link.hash());
   }
 
   /**
@@ -37,5 +57,13 @@ export class Segment {
    */
   public linkHash(): Uint8Array {
     return (this.pbSegment.getMeta() as PbSegmentMeta).getLinkHash_asU8();
+  }
+
+  /**
+   * Serialize the segment.
+   * @returns segment bytes.
+   */
+  public serialize(): Uint8Array {
+    return this.pbSegment.serializeBinary();
   }
 }

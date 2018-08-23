@@ -1,9 +1,11 @@
 import {
+  deserialize,
   ErrLinkMetaMissing,
   ErrUnknownClientId,
   ErrUnknownLinkVersion,
   Link
 } from "./link";
+import { LinkBuilder } from "./link_builder";
 import {
   Link as PbLink,
   LinkMeta as PbLinkMeta,
@@ -14,20 +16,7 @@ import {
  * Create a valid link.
  */
 function createLink(): Link {
-  const proc = new PbProcess();
-  proc.setName("test_process");
-
-  const meta = new PbLinkMeta();
-  meta.setClientId("github.com/stratumn/go-chainscript");
-  meta.setMapId("test_map");
-  meta.setProcess(proc);
-
-  const pbLink = new PbLink();
-  pbLink.setMeta(meta);
-  pbLink.setVersion("1.0.0");
-
-  const link = new Link(pbLink);
-  return link;
+  return new LinkBuilder("test_process", "test_map").build();
 }
 
 describe("link", () => {
@@ -215,6 +204,32 @@ describe("link", () => {
 
       expect(segment.link()).toEqual(link);
       expect(segment.linkHash()).toEqual(link.hash());
+    });
+  });
+
+  describe("serialize", () => {
+    it("with data and metadata", () => {
+      const link = new LinkBuilder("p1", "m1")
+        .withAction("init")
+        .withTags(["tag1", "tag2"])
+        .withData({ name: "batman", age: 42 })
+        .withMetadata({ updatedCount: 3 })
+        .build();
+
+      const serialized = link.serialize();
+      expect(serialized.length).toBeGreaterThan(5);
+
+      const link2 = deserialize(serialized);
+      expect(link2.action()).toEqual("init");
+      expect(link2.clientId()).toEqual(link.clientId());
+      expect(link2.data().name).toEqual("batman");
+      expect(link2.data().age).toEqual(42);
+      expect(link2.hash()).toEqual(link.hash());
+      expect(link2.mapId()).toEqual("m1");
+      expect(link2.metadata().updatedCount).toEqual(3);
+      expect(link2.process().name).toEqual("p1");
+      expect(link2.tags()).toEqual(["tag1", "tag2"]);
+      expect(link2.version()).toEqual(link.version());
     });
   });
 });
