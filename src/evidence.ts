@@ -2,6 +2,9 @@ export const ErrMissingVersion = new TypeError("evidence version is missing");
 export const ErrMissingBackend = new TypeError("evidence backend is missing");
 export const ErrMissingProvider = new TypeError("evidence provider is missing");
 export const ErrMissingProof = new TypeError("evidence proof is missing");
+export const ErrDuplicateEvidence = new TypeError(
+  "evidence already exists for the given backend and provider"
+);
 
 /**
  * Evidences can be used to externally verify a link's existence at a given
@@ -12,13 +15,13 @@ export const ErrMissingProof = new TypeError("evidence proof is missing");
  */
 export class Evidence {
   /** Evidence version. Useful to correctly deserialize proof bytes. */
-  public readonly version: string;
+  public version: string;
   /** Identifier of the evidence type. */
-  public readonly backend: string;
+  public backend: string;
   /** Instance of the backend used. */
-  public readonly provider: string;
+  public provider: string;
   /** Serialized proof. */
-  public readonly proof: Uint8Array;
+  public proof: Uint8Array;
 
   constructor(
     version: string,
