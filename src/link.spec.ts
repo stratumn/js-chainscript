@@ -324,7 +324,7 @@ describe("link", () => {
           .build();
         const link2 = new LinkBuilder("p", "m").build();
 
-        const path = "[data,meta.process.name,meta.map_id]";
+        const path = "[data,meta.process.name,meta.mapId]";
         const b1 = link1.signedBytes(version, path);
         const b2 = link2.signedBytes(version, path);
 
