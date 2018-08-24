@@ -23,4 +23,4 @@ export const LINK_VERSION = LINK_VERSION_1_0_0;
  */
 export const SIGNATURE_VERSION_1_0_0 = "1.0.0";
 /** The current signature version. */
-export const SIGNATURE_VERSION = "1.0.0";
+export const SIGNATURE_VERSION = SIGNATURE_VERSION_1_0_0;
