@@ -1,5 +1,6 @@
 import { parse, stringify } from "canonicaljson";
 import sha256 from "fast-sha256";
+import { search } from "jmespath";
 import * as constants from "./const";
 import { Process } from "./process";
 import {
@@ -16,6 +17,9 @@ export const ErrUnknownClientId = new TypeError(
   "link was created with an unknown client: can't deserialize it"
 );
 export const ErrUnknownLinkVersion = new TypeError("unknown link version");
+export const ErrUnknownSignatureVersion = new TypeError(
+  "unknown signature version"
+);
 
 /**
  * Deserialize a link.
@@ -240,6 +244,32 @@ export class Link {
         );
       default:
         throw ErrUnknownLinkVersion;
+    }
+  }
+
+  /**
+   * Compute the bytes that should be signed.
+   * @argument version impacts how those bytes are computed.
+   * @argument payloadPath parts of the link that should be signed.
+   * @returns bytes to be signed.
+   */
+  public signedBytes(version: string, payloadPath: string): Uint8Array {
+    switch (version) {
+      case constants.SIGNATURE_VERSION_1_0_0:
+        if (!payloadPath) {
+          payloadPath = "[version,data,meta]";
+        }
+
+        const payloadData = search(this.link.toObject(), payloadPath);
+        const jsonData = stringify(payloadData) as string;
+        const payloadBytes = new Uint8Array(jsonData.length);
+        for (let i = 0; i < jsonData.length; i++) {
+          payloadBytes[i] = jsonData.charCodeAt(i);
+        }
+
+        return sha256(payloadBytes);
+      default:
+        throw ErrUnknownSignatureVersion;
     }
   }
 
