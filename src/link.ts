@@ -16,6 +16,9 @@ export const ErrUnknownClientId = new TypeError(
   "link was created with an unknown client: can't deserialize it"
 );
 export const ErrUnknownLinkVersion = new TypeError("unknown link version");
+export const ErrUnknownSignatureVersion = new TypeError(
+  "unknown signature version"
+);
 
 /**
  * Deserialize a link.
@@ -240,6 +243,21 @@ export class Link {
         );
       default:
         throw ErrUnknownLinkVersion;
+    }
+  }
+
+  /**
+   * Compute the bytes that should be signed.
+   * @argument version impacts how those bytes are computed.
+   * @argument payloadPath parts of the link that should be signed.
+   * @returns bytes to be signed.
+   */
+  public signedBytes(version: string, payloadPath: string): Uint8Array {
+    switch (version) {
+      case constants.SIGNATURE_VERSION_1_0_0:
+        return new Uint8Array(0);
+      default:
+        throw ErrUnknownSignatureVersion;
     }
   }
 

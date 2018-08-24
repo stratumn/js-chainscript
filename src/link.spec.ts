@@ -3,6 +3,7 @@ import {
   ErrLinkMetaMissing,
   ErrUnknownClientId,
   ErrUnknownLinkVersion,
+  ErrUnknownSignatureVersion,
   Link
 } from "./link";
 import { LinkBuilder } from "./link_builder";
@@ -244,6 +245,15 @@ describe("link", () => {
 
       expect(link2.hash()).toEqual(link.hash());
       expect(link2.refs()).toEqual([ref1, ref2]);
+    });
+  });
+
+  describe("signed bytes", () => {
+    it("rejects unknown version", () => {
+      const link = new LinkBuilder("p", "m").build();
+      expect(() => link.signedBytes("0.1.0", "")).toThrowError(
+        ErrUnknownSignatureVersion
+      );
     });
   });
 });
