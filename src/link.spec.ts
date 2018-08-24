@@ -1,3 +1,4 @@
+import { SIGNATURE_VERSION_1_0_0 } from "./const";
 import {
   deserialize,
   ErrLinkMetaMissing,
@@ -254,6 +255,49 @@ describe("link", () => {
       expect(() => link.signedBytes("0.1.0", "")).toThrowError(
         ErrUnknownSignatureVersion
       );
+    });
+
+    describe("version 1.0.0", () => {
+      const version = SIGNATURE_VERSION_1_0_0;
+
+      it("rejects invalid jmespath", () => {
+        const link = new LinkBuilder("p", "m").withData("batman").build();
+        expect(() => link.signedBytes(version, "[version,")).toThrowError();
+      });
+
+      it("includes data and meta if no path provided", () => {
+        const link = new LinkBuilder("p", "m").withData("batman").build();
+        const b1 = link.signedBytes(version, "[version,data,meta]");
+        const b2 = link.signedBytes(version, "");
+        const b3 = link.signedBytes(version, "[version,data]");
+
+        expect(b1).toEqual(b2);
+        expect(b1).not.toEqual(b3);
+      });
+
+      it("includes partial meta", () => {
+        const link = new LinkBuilder("p", "m").withAction("init").build();
+        const b1 = link.signedBytes(
+          version,
+          "[meta.action,meta.process.name,meta.mapId]"
+        );
+        const b2 = link.signedBytes(version, "[meta.action,meta.process.name]");
+
+        expect(b1).not.toEqual(b2);
+      });
+
+      it("includes partial meta and link data", () => {
+        const link1 = new LinkBuilder("p", "m")
+          .withData({ user: "batman", age: 42 })
+          .build();
+        const link2 = new LinkBuilder("p", "m").build();
+
+        const path = "[data,meta.process.name,meta.map_id]";
+        const b1 = link1.signedBytes(version, path);
+        const b2 = link2.signedBytes(version, path);
+
+        expect(b1).not.toEqual(b2);
+      });
     });
   });
 });

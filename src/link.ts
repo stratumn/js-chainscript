@@ -1,5 +1,6 @@
 import { parse, stringify } from "canonicaljson";
 import sha256 from "fast-sha256";
+import { search } from "jmespath";
 import * as constants from "./const";
 import { Process } from "./process";
 import {
@@ -255,7 +256,18 @@ export class Link {
   public signedBytes(version: string, payloadPath: string): Uint8Array {
     switch (version) {
       case constants.SIGNATURE_VERSION_1_0_0:
-        return new Uint8Array(0);
+        if (!payloadPath) {
+          payloadPath = "[version,data,meta]";
+        }
+
+        const payloadData = search(this.link.toObject(), payloadPath);
+        const jsonData = stringify(payloadData) as string;
+        const payloadBytes = new Uint8Array(jsonData.length);
+        for (let i = 0; i < jsonData.length; i++) {
+          payloadBytes[i] = jsonData.charCodeAt(i);
+        }
+
+        return sha256(payloadBytes);
       default:
         throw ErrUnknownSignatureVersion;
     }
