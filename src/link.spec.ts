@@ -11,6 +11,7 @@ import {
   LinkMeta as PbLinkMeta,
   Process as PbProcess
 } from "./proto/chainscript_pb";
+import { LinkReference } from "./ref";
 
 /**
  * Create a valid link.
@@ -51,6 +52,7 @@ describe("link", () => {
     expect(() => link.prevLinkHash()).toThrowError(ErrLinkMetaMissing);
     expect(() => link.priority()).toThrowError(ErrLinkMetaMissing);
     expect(() => link.process()).toThrowError(ErrLinkMetaMissing);
+    expect(() => link.refs()).toThrowError(ErrLinkMetaMissing);
     expect(() => link.step()).toThrowError(ErrLinkMetaMissing);
     expect(() => link.tags()).toThrowError(ErrLinkMetaMissing);
   });
@@ -230,6 +232,18 @@ describe("link", () => {
       expect(link2.process().name).toEqual("p1");
       expect(link2.tags()).toEqual(["tag1", "tag2"]);
       expect(link2.version()).toEqual(link.version());
+    });
+
+    it("with references", () => {
+      const ref1 = new LinkReference(Uint8Array.from([24]), "p1");
+      const ref2 = new LinkReference(Uint8Array.from([42]), "p2");
+      const link = new LinkBuilder("p1", "m1").withRefs([ref1, ref2]).build();
+
+      const serialized = link.serialize();
+      const link2 = deserialize(serialized);
+
+      expect(link2.hash()).toEqual(link.hash());
+      expect(link2.refs()).toEqual([ref1, ref2]);
     });
   });
 });

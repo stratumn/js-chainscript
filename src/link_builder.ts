@@ -3,8 +3,10 @@ import { Link } from "./link";
 import {
   Link as PbLink,
   LinkMeta as PbLinkMeta,
+  LinkReference as PbLinkReference,
   Process as PbProcess
 } from "./proto/chainscript_pb";
+import { ErrMissingLinkHash, ErrMissingProcess, LinkReference } from "./ref";
 
 /**
  * ILinkBuilder makes it easy to create links that adhere to the ChainScript
@@ -50,6 +52,13 @@ export interface ILinkBuilder {
    * @param state process state after the link action.
    */
   withProcessState(state: string): ILinkBuilder;
+
+  /**
+   * (Optional) A link can reference other links, even if they are from other
+   * processes.
+   * @param refs references to relevant links.
+   */
+  withRefs(refs: LinkReference[]): ILinkBuilder;
 
   /**
    * (Optional) Set the link's process step.
@@ -140,6 +149,29 @@ export class LinkBuilder implements ILinkBuilder {
     const meta = this.link.getMeta() as PbLinkMeta;
     const process = meta.getProcess() as PbProcess;
     process.setState(state);
+    return this;
+  }
+
+  public withRefs(refs: LinkReference[]): ILinkBuilder {
+    const meta = this.link.getMeta() as PbLinkMeta;
+    const currentRefs = meta.getRefsList();
+    const newRefs = refs.map(ref => {
+      if (!ref.process) {
+        throw ErrMissingProcess;
+      }
+
+      if (!ref.linkHash || ref.linkHash.length === 0) {
+        throw ErrMissingLinkHash;
+      }
+
+      const pbRef = new PbLinkReference();
+      pbRef.setLinkHash(ref.linkHash);
+      pbRef.setProcess(ref.process);
+
+      return pbRef;
+    });
+
+    meta.setRefsList(currentRefs.concat(newRefs));
     return this;
   }
 
