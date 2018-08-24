@@ -31,49 +31,51 @@ describe("segment", () => {
     expect(() => new Segment(new PbSegment())).toThrowError(ErrMissingLink);
   });
 
-  it("resets link hash", () => {
-    const linkMeta = new PbLinkMeta();
-    linkMeta.setClientId("github.com/stratumn/go-chainscript");
+  describe("version 1.0.0", () => {
+    it("resets link hash", () => {
+      const linkMeta = new PbLinkMeta();
+      linkMeta.setClientId("github.com/stratumn/go-chainscript");
 
-    const link = new PbLink();
-    link.setVersion("1.0.0");
-    link.setMeta(linkMeta);
+      const link = new PbLink();
+      link.setVersion("1.0.0");
+      link.setMeta(linkMeta);
 
-    const segmentMeta = new PbSegmentMeta();
-    segmentMeta.setLinkHash(Uint8Array.from([42, 42]));
+      const segmentMeta = new PbSegmentMeta();
+      segmentMeta.setLinkHash(Uint8Array.from([42, 42]));
 
-    const pbSegment = new PbSegment();
-    pbSegment.setLink(link);
-    pbSegment.setMeta(segmentMeta);
+      const pbSegment = new PbSegment();
+      pbSegment.setLink(link);
+      pbSegment.setMeta(segmentMeta);
 
-    const segment = new Segment(pbSegment);
-    expect(segment.linkHash()).toHaveLength(32);
-    expect(segment.link().clientId()).toEqual(
-      "github.com/stratumn/go-chainscript"
-    );
-  });
+      const segment = new Segment(pbSegment);
+      expect(segment.linkHash()).toHaveLength(32);
+      expect(segment.link().clientId()).toEqual(
+        "github.com/stratumn/go-chainscript"
+      );
+    });
 
-  it("serializes and deserializes correctly", () => {
-    const segment = new LinkBuilder("p", "m")
-      .withData({ name: "spongebob" })
-      .build()
-      .segmentify();
+    it("serializes and deserializes correctly", () => {
+      const segment = new LinkBuilder("p", "m")
+        .withData({ name: "spongebob" })
+        .build()
+        .segmentify();
 
-    const btcEvidence = new Evidence(
-      "0.1.0",
-      "bitcoin",
-      "testnet",
-      Uint8Array.from([42])
-    );
-    segment.addEvidence(btcEvidence);
+      const btcEvidence = new Evidence(
+        "0.1.0",
+        "bitcoin",
+        "testnet",
+        Uint8Array.from([42])
+      );
+      segment.addEvidence(btcEvidence);
 
-    const serialized = segment.serialize();
-    const segment2 = deserialize(serialized);
+      const serialized = segment.serialize();
+      const segment2 = deserialize(serialized);
 
-    expect(segment2.linkHash()).toEqual(segment.linkHash());
-    expect(segment2.linkHash()).toEqual(segment.link().hash());
-    expect(segment2.evidences()).toHaveLength(1);
-    expect(segment2.evidences()[0]).toEqual(btcEvidence);
+      expect(segment2.linkHash()).toEqual(segment.linkHash());
+      expect(segment2.linkHash()).toEqual(segment.link().hash());
+      expect(segment2.evidences()).toHaveLength(1);
+      expect(segment2.evidences()[0]).toEqual(btcEvidence);
+    });
   });
 
   describe("evidences", () => {

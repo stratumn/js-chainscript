@@ -16,10 +16,22 @@ import {
 import { LinkReference } from "./ref";
 
 /**
- * Create a valid link.
+ * Create a valid test link for version 1.0.0.
  */
-function createLink(): Link {
-  return new LinkBuilder("test_process", "test_map").build();
+function createLinkV1(): Link {
+  const link = new PbLink();
+  link.setVersion("1.0.0");
+
+  const proc = new PbProcess();
+  proc.setName("test_process");
+
+  const meta = new PbLinkMeta();
+  meta.setMapId("test_map");
+  meta.setProcess(proc);
+  meta.setClientId("github.com/stratumn/go-chainscript");
+
+  link.setMeta(meta);
+  return new Link(link);
 }
 
 describe("link", () => {
@@ -96,20 +108,22 @@ describe("link", () => {
       );
     });
 
-    it("sets custom object", () => {
-      const link = createLink();
-      link.setData(customData);
+    describe("version 1.0.0", () => {
+      it("sets custom object", () => {
+        const link = createLinkV1();
+        link.setData(customData);
 
-      const data = link.data();
-      expect(data).toEqual(customData);
-    });
+        const data = link.data();
+        expect(data).toEqual(customData);
+      });
 
-    it("sets built-in type", () => {
-      const link = createLink();
-      link.setData(42);
+      it("sets built-in type", () => {
+        const link = createLinkV1();
+        link.setData(42);
 
-      const data = link.data();
-      expect(data).toEqual(42);
+        const data = link.data();
+        expect(data).toEqual(42);
+      });
     });
   });
 
@@ -154,20 +168,22 @@ describe("link", () => {
       );
     });
 
-    it("sets custom object", () => {
-      const link = createLink();
-      link.setMetadata(customMetadata);
+    describe("version 1.0.0", () => {
+      it("sets custom object", () => {
+        const link = createLinkV1();
+        link.setMetadata(customMetadata);
 
-      const metadata = link.metadata();
-      expect(metadata).toEqual(customMetadata);
-    });
+        const metadata = link.metadata();
+        expect(metadata).toEqual(customMetadata);
+      });
 
-    it("sets built-in type", () => {
-      const link = createLink();
-      link.setMetadata(42);
+      it("sets built-in type", () => {
+        const link = createLinkV1();
+        link.setMetadata(42);
 
-      const metadata = link.metadata();
-      expect(metadata).toEqual(42);
+        const metadata = link.metadata();
+        expect(metadata).toEqual(42);
+      });
     });
   });
 
@@ -180,16 +196,18 @@ describe("link", () => {
       expect(() => link.hash()).toThrowError(ErrUnknownLinkVersion);
     });
 
-    it("hashes link", () => {
-      const link = createLink();
+    describe("version 1.0.0", () => {
+      it("hashes link", () => {
+        const link = createLinkV1();
 
-      const h1 = link.hash();
-      expect(h1).toHaveLength(32);
+        const h1 = link.hash();
+        expect(h1).toHaveLength(32);
 
-      link.setData(42);
-      const h2 = link.hash();
-      expect(h2).toHaveLength(32);
-      expect(h2).not.toEqual(h1);
+        link.setData(42);
+        const h2 = link.hash();
+        expect(h2).toHaveLength(32);
+        expect(h2).not.toEqual(h1);
+      });
     });
   });
 
@@ -203,7 +221,7 @@ describe("link", () => {
     });
 
     it("hashes link in segment meta", () => {
-      const link = createLink();
+      const link = createLinkV1();
       const segment = link.segmentify();
 
       expect(segment.link()).toEqual(link);
@@ -212,40 +230,54 @@ describe("link", () => {
   });
 
   describe("serialize", () => {
-    it("with data and metadata", () => {
-      const link = new LinkBuilder("p1", "m1")
-        .withAction("init")
-        .withTags(["tag1", "tag2"])
-        .withData({ name: "batman", age: 42 })
-        .withMetadata({ updatedCount: 3 })
-        .build();
+    describe("version 1.0.0", () => {
+      it("with data and metadata", () => {
+        const pbLink = new PbLink();
+        pbLink.setVersion("1.0.0");
 
-      const serialized = link.serialize();
-      expect(serialized.length).toBeGreaterThan(5);
+        const proc = new PbProcess();
+        proc.setName("p1");
 
-      const link2 = deserialize(serialized);
-      expect(link2.action()).toEqual("init");
-      expect(link2.clientId()).toEqual(link.clientId());
-      expect(link2.data().name).toEqual("batman");
-      expect(link2.data().age).toEqual(42);
-      expect(link2.hash()).toEqual(link.hash());
-      expect(link2.mapId()).toEqual("m1");
-      expect(link2.metadata().updatedCount).toEqual(3);
-      expect(link2.process().name).toEqual("p1");
-      expect(link2.tags()).toEqual(["tag1", "tag2"]);
-      expect(link2.version()).toEqual(link.version());
-    });
+        const meta = new PbLinkMeta();
+        meta.setAction("init");
+        meta.setClientId("github.com/stratumn/js-chainscript");
+        meta.setMapId("m1");
+        meta.setProcess(proc);
+        meta.setTagsList(["tag1", "tag2"]);
 
-    it("with references", () => {
-      const ref1 = new LinkReference(Uint8Array.from([24]), "p1");
-      const ref2 = new LinkReference(Uint8Array.from([42]), "p2");
-      const link = new LinkBuilder("p1", "m1").withRefs([ref1, ref2]).build();
+        pbLink.setMeta(meta);
+        const link = new Link(pbLink);
 
-      const serialized = link.serialize();
-      const link2 = deserialize(serialized);
+        link.setData({ name: "batman", age: 42 });
+        link.setMetadata({ updatedCount: 3 });
 
-      expect(link2.hash()).toEqual(link.hash());
-      expect(link2.refs()).toEqual([ref1, ref2]);
+        const serialized = link.serialize();
+        expect(serialized.length).toBeGreaterThan(5);
+
+        const link2 = deserialize(serialized);
+        expect(link2.action()).toEqual("init");
+        expect(link2.clientId()).toEqual(link.clientId());
+        expect(link2.data().name).toEqual("batman");
+        expect(link2.data().age).toEqual(42);
+        expect(link2.hash()).toEqual(link.hash());
+        expect(link2.mapId()).toEqual("m1");
+        expect(link2.metadata().updatedCount).toEqual(3);
+        expect(link2.process().name).toEqual("p1");
+        expect(link2.tags()).toEqual(["tag1", "tag2"]);
+        expect(link2.version()).toEqual(link.version());
+      });
+
+      it("with references", () => {
+        const ref1 = new LinkReference(Uint8Array.from([24]), "p1");
+        const ref2 = new LinkReference(Uint8Array.from([42]), "p2");
+        const link = new LinkBuilder("p1", "m1").withRefs([ref1, ref2]).build();
+
+        const serialized = link.serialize();
+        const link2 = deserialize(serialized);
+
+        expect(link2.hash()).toEqual(link.hash());
+        expect(link2.refs()).toEqual([ref1, ref2]);
+      });
     });
   });
 
