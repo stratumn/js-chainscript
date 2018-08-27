@@ -1,11 +1,10 @@
-import { ErrDuplicateEvidence, Evidence } from "./evidence";
-import { Link } from "./link";
 import {
-  Evidence as PbEvidence,
-  Link as PbLink,
-  Segment as PbSegment,
-  SegmentMeta as PbSegmentMeta
-} from "./proto/chainscript_pb";
+  ErrDuplicateEvidence,
+  Evidence,
+  fromProto as evidenceFromProto
+} from "./evidence";
+import { Link } from "./link";
+import { stratumn } from "./proto/chainscript_pb";
 
 export const ErrMissingLink = new TypeError("link is missing");
 
@@ -15,34 +14,31 @@ export const ErrMissingLink = new TypeError("link is missing");
  * @returns the deserialized segment.
  */
 export function deserialize(segmentBytes: Uint8Array): Segment {
-  const pbSegment = PbSegment.deserializeBinary(segmentBytes);
-  return new Segment(pbSegment);
+  const segment = stratumn.chainscript.Segment.decode(segmentBytes);
+  return new Segment(segment);
 }
 
 /**
  * A segment describes an atomic step in your process.
  */
 export class Segment {
-  private pbLink: PbLink;
-  private pbSegment: PbSegment;
+  private pbLink: stratumn.chainscript.Link;
+  private pbSegment: stratumn.chainscript.Segment;
 
-  constructor(pbSegment: PbSegment) {
-    const pbLink = pbSegment.getLink();
-    if (!pbLink) {
+  constructor(pbSegment: stratumn.chainscript.Segment) {
+    if (!pbSegment.link) {
       throw ErrMissingLink;
     }
 
-    this.pbLink = pbLink;
+    this.pbLink = pbSegment.link as stratumn.chainscript.Link;
     this.pbSegment = pbSegment;
 
-    let meta = this.pbSegment.getMeta();
-    if (!meta) {
-      meta = new PbSegmentMeta();
-      this.pbSegment.setMeta(meta);
+    if (!this.pbSegment.meta) {
+      this.pbSegment.meta = new stratumn.chainscript.SegmentMeta();
     }
 
-    const link = new Link(pbLink);
-    meta.setLinkHash(link.hash());
+    const link = new Link(this.pbLink);
+    this.pbSegment.meta.linkHash = link.hash();
   }
 
   /**
@@ -57,13 +53,14 @@ export class Segment {
       throw ErrDuplicateEvidence;
     }
 
-    const pbEvidence = new PbEvidence();
-    pbEvidence.setVersion(e.version);
-    pbEvidence.setBackend(e.backend);
-    pbEvidence.setProvider(e.provider);
-    pbEvidence.setProof(e.proof);
+    const pbEvidence = new stratumn.chainscript.Evidence();
+    pbEvidence.version = e.version;
+    pbEvidence.backend = e.backend;
+    pbEvidence.provider = e.provider;
+    pbEvidence.proof = e.proof;
 
-    (this.pbSegment.getMeta() as PbSegmentMeta).addEvidences(pbEvidence);
+    const segmentMeta = this.pbSegment.meta as stratumn.chainscript.SegmentMeta;
+    segmentMeta.evidences.push(pbEvidence);
   }
 
   /**
@@ -71,17 +68,8 @@ export class Segment {
    * @returns evidences.
    */
   public evidences(): Evidence[] {
-    return (this.pbSegment.getMeta() as PbSegmentMeta)
-      .getEvidencesList()
-      .map(
-        e =>
-          new Evidence(
-            e.getVersion(),
-            e.getBackend(),
-            e.getProvider(),
-            e.getProof_asU8()
-          )
-      );
+    const segmentMeta = this.pbSegment.meta as stratumn.chainscript.SegmentMeta;
+    return segmentMeta.evidences.map(evidenceFromProto);
   }
 
   /**
@@ -90,18 +78,10 @@ export class Segment {
    * @returns evidences.
    */
   public findEvidences(backend: string): Evidence[] {
-    return (this.pbSegment.getMeta() as PbSegmentMeta)
-      .getEvidencesList()
-      .filter(e => e.getBackend() === backend)
-      .map(
-        e =>
-          new Evidence(
-            e.getVersion(),
-            e.getBackend(),
-            e.getProvider(),
-            e.getProof_asU8()
-          )
-      );
+    const segmentMeta = this.pbSegment.meta as stratumn.chainscript.SegmentMeta;
+    return segmentMeta.evidences
+      .filter(e => e.backend === backend)
+      .map(evidenceFromProto);
   }
 
   /**
@@ -111,18 +91,12 @@ export class Segment {
    * @returns the evidence or null.
    */
   public getEvidence(backend: string, provider: string): Evidence | null {
-    const evidences = (this.pbSegment.getMeta() as PbSegmentMeta).getEvidencesList();
+    const segmentMeta = this.pbSegment.meta as stratumn.chainscript.SegmentMeta;
+    const evidences = segmentMeta.evidences;
+
     for (const current of evidences) {
-      if (
-        current.getBackend() === backend &&
-        current.getProvider() === provider
-      ) {
-        return new Evidence(
-          current.getVersion(),
-          current.getBackend(),
-          current.getProvider(),
-          current.getProof_asU8()
-        );
+      if (current.backend === backend && current.provider === provider) {
+        return evidenceFromProto(current);
       }
     }
 
@@ -142,7 +116,7 @@ export class Segment {
    * @returns the link's hash.
    */
   public linkHash(): Uint8Array {
-    return (this.pbSegment.getMeta() as PbSegmentMeta).getLinkHash_asU8();
+    return (this.pbSegment.meta as stratumn.chainscript.SegmentMeta).linkHash;
   }
 
   /**
@@ -150,6 +124,6 @@ export class Segment {
    * @returns segment bytes.
    */
   public serialize(): Uint8Array {
-    return this.pbSegment.serializeBinary();
+    return stratumn.chainscript.Segment.encode(this.pbSegment).finish();
   }
 }

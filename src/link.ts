@@ -1,13 +1,10 @@
+import * as b64 from "base64-js";
 import { parse, stringify } from "canonicaljson";
 import sha256 from "fast-sha256";
 import { search } from "jmespath";
 import * as constants from "./const";
 import { Process } from "./process";
-import {
-  Link as PbLink,
-  LinkMeta as PbLinkMeta,
-  Segment as PbSegment
-} from "./proto/chainscript_pb";
+import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
 import { Segment } from "./segment";
 
@@ -27,7 +24,7 @@ export const ErrUnknownSignatureVersion = new TypeError(
  * @returns the deserialized link.
  */
 export function deserialize(linkBytes: Uint8Array): Link {
-  const pbLink = PbLink.deserializeBinary(linkBytes);
+  const pbLink = stratumn.chainscript.Link.decode(linkBytes);
   return new Link(pbLink);
 }
 
@@ -36,9 +33,9 @@ export function deserialize(linkBytes: Uint8Array): Link {
  * A link contains all the data that represents a process' step.
  */
 export class Link {
-  private link: PbLink;
+  private link: stratumn.chainscript.Link;
 
-  constructor(link: PbLink) {
+  constructor(link: stratumn.chainscript.Link) {
     this.link = link;
   }
 
@@ -47,12 +44,12 @@ export class Link {
    * @returns the link's action.
    */
   public action(): string {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.getAction();
+    return meta.action ? meta.action : "";
   }
 
   /**
@@ -61,12 +58,12 @@ export class Link {
    * @returns the link's client id.
    */
   public clientId(): string {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.getClientId();
+    return meta.clientId ? meta.clientId : "";
   }
 
   /**
@@ -76,14 +73,14 @@ export class Link {
   public data(): any {
     this.verifyCompatibility();
 
-    const linkData = this.link.getData_asB64();
-    if (!linkData) {
+    const linkData = this.link.data;
+    if (!linkData || linkData.length === 0) {
       return undefined;
     }
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse(atob(linkData));
+        return parse(atob(b64.fromByteArray(linkData)));
       default:
         throw ErrUnknownLinkVersion;
     }
@@ -97,7 +94,7 @@ export class Link {
   public hash(): Uint8Array {
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        const linkBytes = this.link.serializeBinary();
+        const linkBytes = stratumn.chainscript.Link.encode(this.link).finish();
         return sha256(linkBytes);
       default:
         throw ErrUnknownLinkVersion;
@@ -109,12 +106,12 @@ export class Link {
    * @returns the link's map id.
    */
   public mapId(): string {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.getMapId();
+    return meta.mapId ? meta.mapId : "";
   }
 
   /**
@@ -124,14 +121,14 @@ export class Link {
   public metadata(): any {
     this.verifyCompatibility();
 
-    const linkMetadata = (this.link.getMeta() as PbLinkMeta).getData_asB64();
-    if (!linkMetadata) {
+    const linkMetadata = (this.link.meta as stratumn.chainscript.LinkMeta).data;
+    if (!linkMetadata || linkMetadata.length === 0) {
       return undefined;
     }
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse(atob(linkMetadata));
+        return parse(atob(b64.fromByteArray(linkMetadata)));
       default:
         throw ErrUnknownLinkVersion;
     }
@@ -142,12 +139,12 @@ export class Link {
    * @returns the parent link hash.
    */
   public prevLinkHash(): Uint8Array {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.getPrevLinkHash_asU8();
+    return meta.prevLinkHash ? meta.prevLinkHash : new Uint8Array(0);
   }
 
   /**
@@ -155,12 +152,12 @@ export class Link {
    * @returns the link's priority.
    */
   public priority(): number {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.getPriority();
+    return meta.priority ? meta.priority : 0;
   }
 
   /**
@@ -168,17 +165,20 @@ export class Link {
    * @returns the link's process name.
    */
   public process(): Process {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    const process = meta.getProcess();
+    const process = meta.process;
     if (!process) {
       throw ErrLinkProcessMissing;
     }
 
-    return new Process(process.getName(), process.getState());
+    return new Process(
+      process.name ? process.name : "",
+      process.state ? process.state : ""
+    );
   }
 
   /**
@@ -186,14 +186,21 @@ export class Link {
    * @returns referenced links.
    */
   public refs(): LinkReference[] {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    const pbRefs = meta.getRefsList();
-    return pbRefs.map(
-      ref => new LinkReference(ref.getLinkHash_asU8(), ref.getProcess())
+    if (!meta.refs) {
+      return new Array<LinkReference>(0);
+    }
+
+    return meta.refs.map(
+      ref =>
+        new LinkReference(
+          ref.linkHash ? ref.linkHash : new Uint8Array(0),
+          ref.process ? ref.process : ""
+        )
     );
   }
 
@@ -202,9 +209,9 @@ export class Link {
    * @returns the segment wrapping the link.
    */
   public segmentify(): Segment {
-    const pbSegment = new PbSegment();
-    pbSegment.setLink(this.link);
-    return new Segment(pbSegment);
+    const segment = new stratumn.chainscript.Segment();
+    segment.link = this.link;
+    return new Segment(segment);
   }
 
   /**
@@ -212,7 +219,7 @@ export class Link {
    * @returns link bytes.
    */
   public serialize(): Uint8Array {
-    return this.link.serializeBinary();
+    return stratumn.chainscript.Link.encode(this.link).finish();
   }
 
   /**
@@ -224,7 +231,8 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return this.link.setData(btoa(stringify(data)));
+        this.link.data = b64.toByteArray(btoa(stringify(data)));
+        return;
       default:
         throw ErrUnknownLinkVersion;
     }
@@ -237,11 +245,14 @@ export class Link {
   public setMetadata(data: any): void {
     this.verifyCompatibility();
 
+    if (!this.link.meta) {
+      throw ErrLinkMetaMissing;
+    }
+
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return (this.link.getMeta() as PbLinkMeta).setData(
-          btoa(stringify(data))
-        );
+        this.link.meta.data = b64.toByteArray(btoa(stringify(data)));
+        return;
       default:
         throw ErrUnknownLinkVersion;
     }
@@ -260,7 +271,7 @@ export class Link {
           payloadPath = "[version,data,meta]";
         }
 
-        const payloadData = search(this.link.toObject(), payloadPath);
+        const payloadData = search(this.link.toJSON(), payloadPath);
         const jsonData = stringify(payloadData) as string;
         const payloadBytes = new Uint8Array(jsonData.length);
         for (let i = 0; i < jsonData.length; i++) {
@@ -278,12 +289,12 @@ export class Link {
    * @returns the corresponding process step.
    */
   public step(): string {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.getStep();
+    return meta.step ? meta.step : "";
   }
 
   /**
@@ -292,12 +303,12 @@ export class Link {
    * @returns link tags.
    */
   public tags(): string[] {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.getTagsList();
+    return meta.tags ? meta.tags : [];
   }
 
   /**
@@ -305,7 +316,7 @@ export class Link {
    * @returns the link version.
    */
   public version(): string {
-    return this.link.getVersion();
+    return this.link.version;
   }
 
   /**
@@ -313,12 +324,16 @@ export class Link {
    * If not compatible, will throw an exception.
    */
   private verifyCompatibility(): void {
-    const meta = this.link.getMeta();
+    const meta = this.link.meta;
     if (!meta) {
       throw ErrLinkMetaMissing;
     }
 
-    const clientId = meta.getClientId();
+    const clientId = meta.clientId;
+    if (!clientId) {
+      throw ErrUnknownClientId;
+    }
+
     const compatibleClients = [
       constants.ClientId,
       "github.com/stratumn/go-chainscript"

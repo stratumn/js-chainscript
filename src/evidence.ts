@@ -1,3 +1,5 @@
+import { stratumn } from "./proto/chainscript_pb";
+
 export const ErrMissingVersion = new TypeError("evidence version is missing");
 export const ErrMissingBackend = new TypeError("evidence backend is missing");
 export const ErrMissingProvider = new TypeError("evidence provider is missing");
@@ -5,6 +7,19 @@ export const ErrMissingProof = new TypeError("evidence proof is missing");
 export const ErrDuplicateEvidence = new TypeError(
   "evidence already exists for the given backend and provider"
 );
+
+/**
+ * Create an evidence from a protobuf object.
+ * @param e protobuf evidence.
+ */
+export function fromProto(e: stratumn.chainscript.IEvidence): Evidence {
+  return new Evidence(
+    e.version ? e.version : "",
+    e.backend ? e.backend : "",
+    e.provider ? e.provider : "",
+    e.proof ? e.proof : new Uint8Array(0)
+  );
+}
 
 /**
  * Evidences can be used to externally verify a link's existence at a given

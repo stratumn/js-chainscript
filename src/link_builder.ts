@@ -1,11 +1,6 @@
 import * as constants from "./const";
 import { Link } from "./link";
-import {
-  Link as PbLink,
-  LinkMeta as PbLinkMeta,
-  LinkReference as PbLinkReference,
-  Process as PbProcess
-} from "./proto/chainscript_pb";
+import { stratumn } from "./proto/chainscript_pb";
 import { ErrMissingLinkHash, ErrMissingProcess, LinkReference } from "./ref";
 
 /**
@@ -85,13 +80,13 @@ export interface ILinkBuilder {
  * to set fields to valid values.
  */
 export class LinkBuilder implements ILinkBuilder {
-  private link: PbLink;
+  private link: stratumn.chainscript.Link;
   private linkData: any;
   private linkMetadata: any;
 
   constructor(process: string, mapId: string) {
-    this.link = new PbLink();
-    this.link.setVersion(constants.LINK_VERSION);
+    this.link = new stratumn.chainscript.Link();
+    this.link.version = constants.LINK_VERSION;
 
     if (!process) {
       throw new TypeError("process is missing");
@@ -101,19 +96,15 @@ export class LinkBuilder implements ILinkBuilder {
       throw new TypeError("map id is missing");
     }
 
-    const proc = new PbProcess();
-    proc.setName(process);
-
-    const meta = new PbLinkMeta();
-    meta.setMapId(mapId);
-    meta.setProcess(proc);
-    meta.setClientId(constants.ClientId);
-
-    this.link.setMeta(meta);
+    this.link.meta = new stratumn.chainscript.LinkMeta();
+    this.link.meta.clientId = constants.ClientId;
+    this.link.meta.mapId = mapId;
+    this.link.meta.process = new stratumn.chainscript.Process();
+    this.link.meta.process.name = process;
   }
 
   public withAction(action: string): ILinkBuilder {
-    (this.link.getMeta() as PbLinkMeta).setAction(action);
+    (this.link.meta as stratumn.chainscript.LinkMeta).action = action;
     return this;
   }
 
@@ -132,7 +123,7 @@ export class LinkBuilder implements ILinkBuilder {
       throw new TypeError("link hash is missing");
     }
 
-    (this.link.getMeta() as PbLinkMeta).setPrevLinkHash(linkHash);
+    (this.link.meta as stratumn.chainscript.LinkMeta).prevLinkHash = linkHash;
     return this;
   }
 
@@ -141,20 +132,19 @@ export class LinkBuilder implements ILinkBuilder {
       throw new TypeError("priority needs to be positive");
     }
 
-    (this.link.getMeta() as PbLinkMeta).setPriority(priority);
+    (this.link.meta as stratumn.chainscript.LinkMeta).priority = priority;
     return this;
   }
 
   public withProcessState(state: string): ILinkBuilder {
-    const meta = this.link.getMeta() as PbLinkMeta;
-    const process = meta.getProcess() as PbProcess;
-    process.setState(state);
+    const meta = this.link.meta as stratumn.chainscript.LinkMeta;
+    const process = meta.process as stratumn.chainscript.Process;
+    process.state = state;
     return this;
   }
 
   public withRefs(refs: LinkReference[]): ILinkBuilder {
-    const meta = this.link.getMeta() as PbLinkMeta;
-    const currentRefs = meta.getRefsList();
+    const meta = this.link.meta as stratumn.chainscript.LinkMeta;
     const newRefs = refs.map(ref => {
       if (!ref.process) {
         throw ErrMissingProcess;
@@ -164,28 +154,29 @@ export class LinkBuilder implements ILinkBuilder {
         throw ErrMissingLinkHash;
       }
 
-      const pbRef = new PbLinkReference();
-      pbRef.setLinkHash(ref.linkHash);
-      pbRef.setProcess(ref.process);
+      const pbRef = new stratumn.chainscript.LinkReference();
+      pbRef.linkHash = ref.linkHash;
+      pbRef.process = ref.process;
 
       return pbRef;
     });
 
-    meta.setRefsList(currentRefs.concat(newRefs));
+    meta.refs.push(...newRefs);
+
     return this;
   }
 
   public withStep(step: string): ILinkBuilder {
-    (this.link.getMeta() as PbLinkMeta).setStep(step);
+    (this.link.meta as stratumn.chainscript.LinkMeta).step = step;
     return this;
   }
 
   public withTags(tags: string[]): ILinkBuilder {
-    const meta = this.link.getMeta() as PbLinkMeta;
-    const oldTags = meta.getTagsList();
+    const meta = this.link.meta as stratumn.chainscript.LinkMeta;
     const newTags = tags.filter(t => t);
 
-    meta.setTagsList(oldTags.concat(newTags));
+    meta.tags.push(...newTags);
+
     return this;
   }
 

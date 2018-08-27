@@ -8,42 +8,36 @@ import {
   Link
 } from "./link";
 import { LinkBuilder } from "./link_builder";
-import {
-  Link as PbLink,
-  LinkMeta as PbLinkMeta,
-  Process as PbProcess
-} from "./proto/chainscript_pb";
+import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
 
 /**
  * Create a valid test link for version 1.0.0.
  */
 function createLinkV1(): Link {
-  const link = new PbLink();
-  link.setVersion("1.0.0");
+  const link = new stratumn.chainscript.Link();
+  link.version = "1.0.0";
 
-  const proc = new PbProcess();
-  proc.setName("test_process");
+  link.meta = new stratumn.chainscript.LinkMeta();
+  link.meta.clientId = "github.com/stratumn/go-chainscript";
+  link.meta.mapId = "test_map";
 
-  const meta = new PbLinkMeta();
-  meta.setMapId("test_map");
-  meta.setProcess(proc);
-  meta.setClientId("github.com/stratumn/go-chainscript");
+  link.meta.process = new stratumn.chainscript.Process();
+  link.meta.process.name = "test_process";
 
-  link.setMeta(meta);
   return new Link(link);
 }
 
 describe("link", () => {
   describe("process", () => {
     it("throws if meta is missing", () => {
-      const link = new Link(new PbLink());
+      const link = new Link(new stratumn.chainscript.Link());
       expect(() => link.process()).toThrowError("link meta is missing");
     });
 
     it("throws if process is missing", () => {
-      const pbLink = new PbLink();
-      pbLink.setMeta(new PbLinkMeta());
+      const pbLink = new stratumn.chainscript.Link();
+      pbLink.meta = new stratumn.chainscript.LinkMeta();
 
       const link = new Link(pbLink);
       expect(() => link.process()).toThrowError("link process is missing");
@@ -52,13 +46,13 @@ describe("link", () => {
 
   describe("map id", () => {
     it("throws if meta is missing", () => {
-      const link = new Link(new PbLink());
+      const link = new Link(new stratumn.chainscript.Link());
       expect(() => link.mapId()).toThrowError("link meta is missing");
     });
   });
 
   it("throws when meta is missing", () => {
-    const link = new Link(new PbLink());
+    const link = new Link(new stratumn.chainscript.Link());
 
     expect(() => link.action()).toThrowError(ErrLinkMetaMissing);
     expect(() => link.clientId()).toThrowError(ErrLinkMetaMissing);
@@ -75,17 +69,15 @@ describe("link", () => {
     const customData = { name: "Sponge", surname: "Bob" };
 
     it("rejects missing meta", () => {
-      const link = new Link(new PbLink());
+      const link = new Link(new stratumn.chainscript.Link());
       expect(() => link.data()).toThrowError(ErrLinkMetaMissing);
       expect(() => link.setData(customData)).toThrowError(ErrLinkMetaMissing);
     });
 
     it("rejects incompatible client id", () => {
-      const meta = new PbLinkMeta();
-      meta.setClientId("github.com/some-random-guy/with-custom-impl");
-
-      const pbLink = new PbLink();
-      pbLink.setMeta(meta);
+      const pbLink = new stratumn.chainscript.Link();
+      pbLink.meta = new stratumn.chainscript.LinkMeta();
+      pbLink.meta.clientId = "github.com/some-random-guy/with-custom-impl";
 
       const link = new Link(pbLink);
       expect(() => link.data()).toThrowError(ErrUnknownClientId);
@@ -93,13 +85,12 @@ describe("link", () => {
     });
 
     it("rejects unknown version", () => {
-      const meta = new PbLinkMeta();
-      meta.setClientId("github.com/stratumn/go-chainscript");
+      const pbLink = new stratumn.chainscript.Link();
+      pbLink.data = Uint8Array.from([42]);
+      pbLink.version = "0.42.0";
 
-      const pbLink = new PbLink();
-      pbLink.setData("42");
-      pbLink.setMeta(meta);
-      pbLink.setVersion("0.42.0");
+      pbLink.meta = new stratumn.chainscript.LinkMeta();
+      pbLink.meta.clientId = "github.com/stratumn/go-chainscript";
 
       const link = new Link(pbLink);
       expect(() => link.data()).toThrowError(ErrUnknownLinkVersion);
@@ -131,7 +122,7 @@ describe("link", () => {
     const customMetadata = { name: "Batman", age: 42 };
 
     it("rejects missing meta", () => {
-      const link = new Link(new PbLink());
+      const link = new Link(new stratumn.chainscript.Link());
       expect(() => link.metadata()).toThrowError(ErrLinkMetaMissing);
       expect(() => link.setMetadata(customMetadata)).toThrowError(
         ErrLinkMetaMissing
@@ -139,11 +130,9 @@ describe("link", () => {
     });
 
     it("rejects incompatible client id", () => {
-      const meta = new PbLinkMeta();
-      meta.setClientId("github.com/some-random-guy/with-custom-impl");
-
-      const pbLink = new PbLink();
-      pbLink.setMeta(meta);
+      const pbLink = new stratumn.chainscript.Link();
+      pbLink.meta = new stratumn.chainscript.LinkMeta();
+      pbLink.meta.clientId = "github.com/some-random-guy/with-custom-impl";
 
       const link = new Link(pbLink);
       expect(() => link.metadata()).toThrowError(ErrUnknownClientId);
@@ -153,13 +142,11 @@ describe("link", () => {
     });
 
     it("rejects unknown version", () => {
-      const meta = new PbLinkMeta();
-      meta.setClientId("github.com/stratumn/go-chainscript");
-      meta.setData("42");
-
-      const pbLink = new PbLink();
-      pbLink.setMeta(meta);
-      pbLink.setVersion("0.42.0");
+      const pbLink = new stratumn.chainscript.Link();
+      pbLink.version = "0.42.0";
+      pbLink.meta = new stratumn.chainscript.LinkMeta();
+      pbLink.meta.clientId = "github.com/stratumn/go-chainscript";
+      pbLink.meta.data = Uint8Array.from([42]);
 
       const link = new Link(pbLink);
       expect(() => link.metadata()).toThrowError(ErrUnknownLinkVersion);
@@ -189,8 +176,8 @@ describe("link", () => {
 
   describe("hash", () => {
     it("rejects unknown version", () => {
-      const pbLink = new PbLink();
-      pbLink.setVersion("0.42.0");
+      const pbLink = new stratumn.chainscript.Link();
+      pbLink.version = "0.42.0";
 
       const link = new Link(pbLink);
       expect(() => link.hash()).toThrowError(ErrUnknownLinkVersion);
@@ -213,8 +200,8 @@ describe("link", () => {
 
   describe("segmentify", () => {
     it("rejects unknown version", () => {
-      const pbLink = new PbLink();
-      pbLink.setVersion("0.42.0");
+      const pbLink = new stratumn.chainscript.Link();
+      pbLink.version = "0.42.0";
 
       const link = new Link(pbLink);
       expect(() => link.segmentify()).toThrowError(ErrUnknownLinkVersion);
@@ -232,20 +219,18 @@ describe("link", () => {
   describe("serialize", () => {
     describe("version 1.0.0", () => {
       it("with data and metadata", () => {
-        const pbLink = new PbLink();
-        pbLink.setVersion("1.0.0");
+        const pbLink = new stratumn.chainscript.Link();
+        pbLink.version = "1.0.0";
 
-        const proc = new PbProcess();
-        proc.setName("p1");
+        const meta = new stratumn.chainscript.LinkMeta();
+        meta.action = "init";
+        meta.clientId = "github.com/stratumn/js-chainscript";
+        meta.mapId = "m1";
+        meta.process = new stratumn.chainscript.Process();
+        meta.process.name = "p1";
+        meta.tags = ["tag1", "tag2"];
 
-        const meta = new PbLinkMeta();
-        meta.setAction("init");
-        meta.setClientId("github.com/stratumn/js-chainscript");
-        meta.setMapId("m1");
-        meta.setProcess(proc);
-        meta.setTagsList(["tag1", "tag2"]);
-
-        pbLink.setMeta(meta);
+        pbLink.meta = meta;
         const link = new Link(pbLink);
 
         link.setData({ name: "batman", age: 42 });
@@ -276,7 +261,16 @@ describe("link", () => {
         const link2 = deserialize(serialized);
 
         expect(link2.hash()).toEqual(link.hash());
-        expect(link2.refs()).toEqual([ref1, ref2]);
+
+        expect(link2.refs()[0].process).toEqual(ref1.process);
+        expect(link2.refs()[1].process).toEqual(ref2.process);
+
+        // Protobuf uses a buffer implementation that's portable between
+        // browser and node to represent bytes.
+        // We can't directly compare the objects because their type won't
+        // match, so we compare the data inside.
+        expect(link2.refs()[0].linkHash[0]).toEqual(24);
+        expect(link2.refs()[1].linkHash[0]).toEqual(42);
       });
     });
   });
