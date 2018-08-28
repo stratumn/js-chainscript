@@ -14,10 +14,10 @@ export const ErrDuplicateEvidence = new TypeError(
  */
 export function fromProto(e: stratumn.chainscript.IEvidence): Evidence {
   return new Evidence(
-    e.version ? e.version : "",
-    e.backend ? e.backend : "",
-    e.provider ? e.provider : "",
-    e.proof ? e.proof : new Uint8Array(0)
+    e.version || "",
+    e.backend || "",
+    e.provider || "",
+    e.proof || new Uint8Array(0)
   );
 }
 

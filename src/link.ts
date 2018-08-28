@@ -49,7 +49,7 @@ export class Link {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.action ? meta.action : "";
+    return meta.action || "";
   }
 
   /**
@@ -63,7 +63,7 @@ export class Link {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.clientId ? meta.clientId : "";
+    return meta.clientId || "";
   }
 
   /**
@@ -111,7 +111,7 @@ export class Link {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.mapId ? meta.mapId : "";
+    return meta.mapId || "";
   }
 
   /**
@@ -144,7 +144,7 @@ export class Link {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.prevLinkHash ? meta.prevLinkHash : new Uint8Array(0);
+    return meta.prevLinkHash || new Uint8Array(0);
   }
 
   /**
@@ -157,7 +157,7 @@ export class Link {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.priority ? meta.priority : 0;
+    return meta.priority || 0;
   }
 
   /**
@@ -175,10 +175,7 @@ export class Link {
       throw ErrLinkProcessMissing;
     }
 
-    return new Process(
-      process.name ? process.name : "",
-      process.state ? process.state : ""
-    );
+    return new Process(process.name || "", process.state || "");
   }
 
   /**
@@ -197,10 +194,7 @@ export class Link {
 
     return meta.refs.map(
       ref =>
-        new LinkReference(
-          ref.linkHash ? ref.linkHash : new Uint8Array(0),
-          ref.process ? ref.process : ""
-        )
+        new LinkReference(ref.linkHash || new Uint8Array(0), ref.process || "")
     );
   }
 
@@ -294,7 +288,7 @@ export class Link {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.step ? meta.step : "";
+    return meta.step || "";
   }
 
   /**
@@ -308,7 +302,7 @@ export class Link {
       throw ErrLinkMetaMissing;
     }
 
-    return meta.tags ? meta.tags : [];
+    return meta.tags || [];
   }
 
   /**
