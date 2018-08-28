@@ -10,6 +10,7 @@ import { LinkReference } from "./ref";
 import { Segment } from "./segment";
 import { ErrUnknownSignatureVersion, Signature } from "./signature";
 
+export const ErrLinkMapIdMissing = new TypeError("link map id is missing");
 export const ErrLinkMetaMissing = new TypeError("link meta is missing");
 export const ErrLinkProcessMissing = new TypeError("link process is missing");
 export const ErrUnknownClientId = new TypeError(
@@ -344,6 +345,27 @@ export class Link {
    * Validate checks for errors in a link.
    */
   public validate(): void {
+    if (!this.link.version) {
+      throw ErrUnknownLinkVersion;
+    }
+
+    const meta = this.link.meta;
+    if (!meta) {
+      throw ErrLinkMetaMissing;
+    }
+
+    if (!meta.mapId) {
+      throw ErrLinkMapIdMissing;
+    }
+
+    if (!meta.process || !meta.process.name) {
+      throw ErrLinkProcessMissing;
+    }
+
+    this.verifyCompatibility();
+
+    // TODO: validate refs
+
     this.link.signatures.map(s => {
       new Signature(s).validate(this);
     });

@@ -1,3 +1,4 @@
+import * as b64 from "base64-js";
 import {
   ErrDuplicateEvidence,
   Evidence,
@@ -6,7 +7,10 @@ import {
 import { Link } from "./link";
 import { stratumn } from "./proto/chainscript_pb";
 
-export const ErrMissingLink = new TypeError("link is missing");
+export const ErrLinkMissing = new TypeError("link is missing");
+export const ErrLinkHashMissing = new TypeError("link hash is missing");
+export const ErrLinkHashMismatch = new TypeError("link hash mismatch");
+export const ErrSegmentMetaMissing = new TypeError("segment meta is missing");
 
 /**
  * Deserialize a segment.
@@ -27,7 +31,7 @@ export class Segment {
 
   constructor(pbSegment: stratumn.chainscript.Segment) {
     if (!pbSegment.link) {
-      throw ErrMissingLink;
+      throw ErrLinkMissing;
     }
 
     this.pbLink = pbSegment.link as stratumn.chainscript.Link;
@@ -125,5 +129,27 @@ export class Segment {
    */
   public serialize(): Uint8Array {
     return stratumn.chainscript.Segment.encode(this.pbSegment).finish();
+  }
+
+  /**
+   * Validate checks for errors in a segment.
+   */
+  public validate(): void {
+    if (!this.pbSegment.meta) {
+      throw ErrSegmentMetaMissing;
+    }
+
+    if (!this.linkHash() || this.linkHash().length === 0) {
+      throw ErrLinkHashMissing;
+    }
+
+    if (
+      b64.fromByteArray(this.linkHash()) !==
+      b64.fromByteArray(this.link().hash())
+    ) {
+      throw ErrLinkHashMismatch;
+    }
+
+    this.link().validate();
   }
 }

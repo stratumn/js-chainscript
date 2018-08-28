@@ -6,10 +6,15 @@ import {
   ErrMissingVersion,
   Evidence
 } from "./evidence";
-import { ErrUnknownLinkVersion } from "./link";
+import { ErrLinkMetaMissing, ErrUnknownLinkVersion } from "./link";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
-import { deserialize, ErrMissingLink, Segment } from "./segment";
+import {
+  deserialize,
+  ErrLinkHashMismatch,
+  ErrLinkMissing,
+  Segment
+} from "./segment";
 
 describe("segment", () => {
   it("rejects unknown version", () => {
@@ -24,7 +29,7 @@ describe("segment", () => {
 
   it("rejects missing link", () => {
     expect(() => new Segment(new stratumn.chainscript.Segment())).toThrowError(
-      ErrMissingLink
+      ErrLinkMissing
     );
   });
 
@@ -156,6 +161,36 @@ describe("segment", () => {
       segment.addEvidence(e);
 
       expect(segment.findEvidences("ethereum")).toHaveLength(0);
+    });
+  });
+
+  describe("validate", () => {
+    it("link hash mismatch", () => {
+      const link = new stratumn.chainscript.Link();
+      link.version = "1.0.0";
+      link.meta = new stratumn.chainscript.LinkMeta();
+      link.meta.action = "init";
+
+      const pbSegment = new stratumn.chainscript.Segment();
+      pbSegment.link = link;
+
+      const segment = new Segment(pbSegment);
+
+      // Mutate the underlying link.
+      link.meta.action = "override";
+
+      expect(() => segment.validate()).toThrowError(ErrLinkHashMismatch);
+    });
+
+    it("invalid link", () => {
+      const link = new stratumn.chainscript.Link();
+      link.version = "1.0.0";
+
+      const pbSegment = new stratumn.chainscript.Segment();
+      pbSegment.link = link;
+
+      const segment = new Segment(pbSegment);
+      expect(() => segment.validate()).toThrowError(ErrLinkMetaMissing);
     });
   });
 });

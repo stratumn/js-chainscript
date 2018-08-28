@@ -2,7 +2,9 @@ import { sig } from "@stratumn/js-crypto";
 import { SIGNATURE_VERSION_1_0_0 } from "./const";
 import {
   deserialize,
+  ErrLinkMapIdMissing,
   ErrLinkMetaMissing,
+  ErrLinkProcessMissing,
   ErrUnknownClientId,
   ErrUnknownLinkVersion,
   Link
@@ -369,6 +371,57 @@ describe("link", () => {
 
       signatures[0].validate(link);
       signatures[1].validate(link);
+
+      link.validate();
+    });
+  });
+
+  describe("validate", () => {
+    it("rejects missing version", () => {
+      const link = new Link(new stratumn.chainscript.Link());
+      expect(() => link.validate()).toThrowError(ErrUnknownLinkVersion);
+    });
+
+    it("rejects missing meta", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+
+      const link = new Link(pb);
+      expect(() => link.validate()).toThrowError(ErrLinkMetaMissing);
+    });
+
+    it("rejects missing map id", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.process = new stratumn.chainscript.Process();
+      pb.meta.process.name = "p";
+
+      const link = new Link(pb);
+      expect(() => link.validate()).toThrowError(ErrLinkMapIdMissing);
+    });
+
+    it("rejects missing process", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.mapId = "m";
+
+      const link = new Link(pb);
+      expect(() => link.validate()).toThrowError(ErrLinkProcessMissing);
+    });
+
+    it("rejects incompatible clients", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.clientId = "github.com/some/lib";
+      pb.meta.mapId = "m";
+      pb.meta.process = new stratumn.chainscript.Process();
+      pb.meta.process.name = "p";
+
+      const link = new Link(pb);
+      expect(() => link.validate()).toThrowError(ErrUnknownClientId);
     });
   });
 });
