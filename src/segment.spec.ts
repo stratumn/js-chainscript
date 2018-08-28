@@ -8,44 +8,37 @@ import {
 } from "./evidence";
 import { ErrUnknownLinkVersion } from "./link";
 import { LinkBuilder } from "./link_builder";
-import {
-  Link as PbLink,
-  LinkMeta as PbLinkMeta,
-  Segment as PbSegment,
-  SegmentMeta as PbSegmentMeta
-} from "./proto/chainscript_pb";
+import { stratumn } from "./proto/chainscript_pb";
 import { deserialize, ErrMissingLink, Segment } from "./segment";
 
 describe("segment", () => {
   it("rejects unknown version", () => {
-    const link = new PbLink();
-    link.setVersion("0.42.0");
+    const link = new stratumn.chainscript.Link();
+    link.version = "0.42.0";
 
-    const segment = new PbSegment();
-    segment.setLink(link);
+    const segment = new stratumn.chainscript.Segment();
+    segment.link = link;
 
     expect(() => new Segment(segment)).toThrowError(ErrUnknownLinkVersion);
   });
 
   it("rejects missing link", () => {
-    expect(() => new Segment(new PbSegment())).toThrowError(ErrMissingLink);
+    expect(() => new Segment(new stratumn.chainscript.Segment())).toThrowError(
+      ErrMissingLink
+    );
   });
 
   describe("version 1.0.0", () => {
     it("resets link hash", () => {
-      const linkMeta = new PbLinkMeta();
-      linkMeta.setClientId("github.com/stratumn/go-chainscript");
+      const link = new stratumn.chainscript.Link();
+      link.version = "1.0.0";
+      link.meta = new stratumn.chainscript.LinkMeta();
+      link.meta.clientId = "github.com/stratumn/go-chainscript";
 
-      const link = new PbLink();
-      link.setVersion("1.0.0");
-      link.setMeta(linkMeta);
-
-      const segmentMeta = new PbSegmentMeta();
-      segmentMeta.setLinkHash(Uint8Array.from([42, 42]));
-
-      const pbSegment = new PbSegment();
-      pbSegment.setLink(link);
-      pbSegment.setMeta(segmentMeta);
+      const pbSegment = new stratumn.chainscript.Segment();
+      pbSegment.link = link;
+      pbSegment.meta = new stratumn.chainscript.SegmentMeta();
+      pbSegment.meta.linkHash = Uint8Array.from([42, 42]);
 
       const segment = new Segment(pbSegment);
       expect(segment.linkHash()).toHaveLength(32);
@@ -74,7 +67,16 @@ describe("segment", () => {
       expect(segment2.linkHash()).toEqual(segment.linkHash());
       expect(segment2.linkHash()).toEqual(segment.link().hash());
       expect(segment2.evidences()).toHaveLength(1);
-      expect(segment2.evidences()[0]).toEqual(btcEvidence);
+
+      expect(segment2.evidences()[0].version).toEqual(btcEvidence.version);
+      expect(segment2.evidences()[0].backend).toEqual(btcEvidence.backend);
+      expect(segment2.evidences()[0].provider).toEqual(btcEvidence.provider);
+      // Protobuf uses a buffer implementation that's portable between
+      // browser and node to represent bytes.
+      // We can't directly compare the objects because their type won't
+      // match, so we compare the data inside.
+      expect(segment2.evidences()[0].proof).toHaveLength(1);
+      expect(segment2.evidences()[0].proof[0]).toEqual(42);
     });
   });
 

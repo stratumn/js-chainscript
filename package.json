@@ -10,7 +10,7 @@
     "build": "tsc",
     "lint": "tslint --project \"./tsconfig.json\"",
     "test": "jest",
-    "protobuf": "protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --js_out=import_style=commonjs,binary:src --ts_out=src proto/chainscript.proto"
+    "protobuf": "node_modules/.bin/pbjs -t static-module -w commonjs -o src/proto/chainscript_pb.js proto/chainscript.proto && node_modules/.bin/pbts -o src/proto/chainscript_pb.d.ts src/proto/chainscript_pb.js"
   },
   "files": [
     "lib"
@@ -30,17 +30,19 @@
   },
   "homepage": "https://github.com/stratumn/js-chainscript#readme",
   "dependencies": {
+    "@types/base64-js": "^1.2.5",
     "@types/jmespath": "^0.15.0",
+    "base64-js": "^1.3.0",
     "canonicaljson": "^1.0.1",
     "fast-sha256": "^1.1.0",
-    "jmespath": "^0.15.0"
+    "jmespath": "^0.15.0",
+    "protobufjs": "^6.8.8"
   },
   "devDependencies": {
     "@types/google-protobuf": "^3.2.7",
     "@types/jest": "^23.3.1",
     "jest": "^23.5.0",
     "ts-jest": "^23.1.3",
-    "ts-protoc-gen": "^0.7.6",
     "tslint": "^5.11.0",
     "typescript": "^3.0.1"
   },

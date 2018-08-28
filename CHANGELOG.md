@@ -7,7 +7,7 @@ choices. Those choices are detailed in this document.
 
 - Dependencies:
   - [Canonical JSON](https://www.npmjs.com/package/canonicaljson) v1.0.1
-  - [Protobuf](https://developers.google.com/protocol-buffers/) v3.6.1
+  - [ProtobufJS](https://www.npmjs.com/package/protobufjs) v6.8.8
   - [Crypto](https://github.com/stratumn/js-crypto) v1.0.0
 - Data bytes (e.g. _link.data_, _link.meta.data_) are encoded from Javascript
   objects using canonical JSON
