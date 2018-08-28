@@ -1,15 +1,16 @@
+import { sig } from "@stratumn/js-crypto";
 import { SIGNATURE_VERSION_1_0_0 } from "./const";
 import {
   deserialize,
   ErrLinkMetaMissing,
   ErrUnknownClientId,
   ErrUnknownLinkVersion,
-  ErrUnknownSignatureVersion,
   Link
 } from "./link";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
+import { ErrInvalidSignature, ErrUnknownSignatureVersion } from "./signature";
 
 /**
  * Create a valid test link for version 1.0.0.
@@ -324,6 +325,50 @@ describe("link", () => {
 
         expect(b1).not.toEqual(b2);
       });
+    });
+  });
+
+  describe("sign", () => {
+    const keyBytes = new sig.SigningPrivateKey({
+      algo: sig.SIGNING_ALGO_RSA.name
+    }).export();
+
+    it("rejects invalid private key", () => {
+      const link = new LinkBuilder("p", "m").build();
+      expect(() => link.sign(Uint8Array.from([42]), "")).toThrowError();
+    });
+
+    it("rejects invalid payload path", () => {
+      const link = new LinkBuilder("p", "m").build();
+      expect(() => link.sign(keyBytes, "[data,")).toThrowError();
+    });
+
+    it("rejects invalid signature", () => {
+      const l1 = new LinkBuilder("p1", "m1").build();
+      l1.sign(keyBytes, "[meta]");
+
+      const signatures = l1.signatures();
+      expect(signatures).toHaveLength(1);
+      signatures[0].validate(l1);
+
+      const l2 = new LinkBuilder("p2", "m2").build();
+      expect(() => signatures[0].validate(l2)).toThrowError(
+        ErrInvalidSignature
+      );
+    });
+
+    it("supports multiple signatures", () => {
+      const link = new LinkBuilder("p", "m").build();
+      link.sign(keyBytes, "");
+      link.sign(keyBytes, "[version]");
+
+      const signatures = link.signatures();
+      expect(signatures).toHaveLength(2);
+      expect(signatures[0].payloadPath()).toEqual("");
+      expect(signatures[1].payloadPath()).toEqual("[version]");
+
+      signatures[0].validate(link);
+      signatures[1].validate(link);
     });
   });
 });
