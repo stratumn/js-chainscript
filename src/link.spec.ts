@@ -6,7 +6,6 @@ import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
 import { Segment } from "./segment";
-import { ErrInvalidSignature, ErrUnknownSignatureVersion } from "./signature";
 
 /**
  * Create a valid test link for version 1.0.0.
@@ -282,7 +281,7 @@ describe("link", () => {
     it("rejects unknown version", () => {
       const link = new LinkBuilder("p", "m").build();
       expect(() => link.signedBytes("0.1.0", "")).toThrowError(
-        ErrUnknownSignatureVersion
+        errors.ErrSignatureVersionUnknown
       );
     });
 
@@ -355,7 +354,7 @@ describe("link", () => {
 
       const l2 = new LinkBuilder("p2", "m2").build();
       expect(() => signatures[0].validate(l2)).toThrowError(
-        ErrInvalidSignature
+        errors.ErrSignatureInvalid
       );
     });
 
