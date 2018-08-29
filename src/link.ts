@@ -7,12 +7,15 @@ import * as constants from "./const";
 import { Process } from "./process";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
-import { Segment } from "./segment";
+import { ErrLinkHashMissing, GetSegmentFunc, Segment } from "./segment";
 import { ErrUnknownSignatureVersion, Signature } from "./signature";
 
 export const ErrLinkMapIdMissing = new TypeError("link map id is missing");
 export const ErrLinkMetaMissing = new TypeError("link meta is missing");
 export const ErrLinkProcessMissing = new TypeError("link process is missing");
+export const ErrRefNotFound = new TypeError(
+  "referenced link could not be retrieved"
+);
 export const ErrUnknownClientId = new TypeError(
   "link was created with an unknown client: can't deserialize it"
 );
@@ -344,7 +347,7 @@ export class Link {
   /**
    * Validate checks for errors in a link.
    */
-  public validate(): void {
+  public validate(getSegment: GetSegmentFunc): void {
     if (!this.link.version) {
       throw ErrUnknownLinkVersion;
     }
@@ -364,10 +367,26 @@ export class Link {
 
     this.verifyCompatibility();
 
-    // TODO: validate refs
+    this.refs().map(r => {
+      if (!r.process) {
+        throw ErrLinkProcessMissing;
+      }
 
-    this.link.signatures.map(s => {
-      new Signature(s).validate(this);
+      if (!r.linkHash || r.linkHash.length === 0) {
+        throw ErrLinkHashMissing;
+      }
+
+      // We only check the referenced segment if it's in the same process.
+      if (r.process === this.process().name && getSegment) {
+        const seg = getSegment(r.linkHash);
+        if (!seg) {
+          throw ErrRefNotFound;
+        }
+      }
+    });
+
+    this.signatures().map(s => {
+      s.validate(this);
     });
   }
 

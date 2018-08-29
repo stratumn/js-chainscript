@@ -13,6 +13,12 @@ export const ErrLinkHashMismatch = new TypeError("link hash mismatch");
 export const ErrSegmentMetaMissing = new TypeError("segment meta is missing");
 
 /**
+ * GetSegmentFunc fetches segments from a store.
+ * It can be used to validate that references exist.
+ */
+export type GetSegmentFunc = (linkHash: Uint8Array) => Segment;
+
+/**
  * Deserialize a segment.
  * @param segmentBytes encoded bytes.
  * @returns the deserialized segment.
@@ -134,7 +140,7 @@ export class Segment {
   /**
    * Validate checks for errors in a segment.
    */
-  public validate(): void {
+  public validate(getSegment: GetSegmentFunc): void {
     if (!this.pbSegment.meta) {
       throw ErrSegmentMetaMissing;
     }
@@ -150,6 +156,6 @@ export class Segment {
       throw ErrLinkHashMismatch;
     }
 
-    this.link().validate();
+    this.link().validate(getSegment);
   }
 }

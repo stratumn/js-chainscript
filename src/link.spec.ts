@@ -5,13 +5,15 @@ import {
   ErrLinkMapIdMissing,
   ErrLinkMetaMissing,
   ErrLinkProcessMissing,
+  ErrRefNotFound,
   ErrUnknownClientId,
   ErrUnknownLinkVersion,
   Link
 } from "./link";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
-import { LinkReference } from "./ref";
+import { ErrMissingProcess, LinkReference } from "./ref";
+import { Segment } from "./segment";
 import { ErrInvalidSignature, ErrUnknownSignatureVersion } from "./signature";
 
 /**
@@ -372,14 +374,14 @@ describe("link", () => {
       signatures[0].validate(link);
       signatures[1].validate(link);
 
-      link.validate();
+      link.validate(null);
     });
   });
 
   describe("validate", () => {
     it("rejects missing version", () => {
       const link = new Link(new stratumn.chainscript.Link());
-      expect(() => link.validate()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.validate(null)).toThrowError(ErrUnknownLinkVersion);
     });
 
     it("rejects missing meta", () => {
@@ -387,7 +389,7 @@ describe("link", () => {
       pb.version = "1.0.0";
 
       const link = new Link(pb);
-      expect(() => link.validate()).toThrowError(ErrLinkMetaMissing);
+      expect(() => link.validate(null)).toThrowError(ErrLinkMetaMissing);
     });
 
     it("rejects missing map id", () => {
@@ -398,7 +400,7 @@ describe("link", () => {
       pb.meta.process.name = "p";
 
       const link = new Link(pb);
-      expect(() => link.validate()).toThrowError(ErrLinkMapIdMissing);
+      expect(() => link.validate(null)).toThrowError(ErrLinkMapIdMissing);
     });
 
     it("rejects missing process", () => {
@@ -408,7 +410,7 @@ describe("link", () => {
       pb.meta.mapId = "m";
 
       const link = new Link(pb);
-      expect(() => link.validate()).toThrowError(ErrLinkProcessMissing);
+      expect(() => link.validate(null)).toThrowError(ErrLinkProcessMissing);
     });
 
     it("rejects incompatible clients", () => {
@@ -421,7 +423,64 @@ describe("link", () => {
       pb.meta.process.name = "p";
 
       const link = new Link(pb);
-      expect(() => link.validate()).toThrowError(ErrUnknownClientId);
+      expect(() => link.validate(null)).toThrowError(ErrUnknownClientId);
+    });
+
+    it("rejects invalid reference", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.clientId = "github.com/stratumn/go-chainscript";
+      pb.meta.mapId = "m";
+      pb.meta.process = new stratumn.chainscript.Process();
+      pb.meta.process.name = "p";
+      pb.meta.refs.push(new stratumn.chainscript.LinkReference());
+
+      const link = new Link(pb);
+      expect(() => link.validate(null)).toThrowError(ErrMissingProcess);
+    });
+
+    it("rejects missing reference", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.clientId = "github.com/stratumn/go-chainscript";
+      pb.meta.mapId = "m";
+      pb.meta.process = new stratumn.chainscript.Process();
+      pb.meta.process.name = "p";
+
+      const linkRef = new stratumn.chainscript.LinkReference();
+      linkRef.process = "p";
+      linkRef.linkHash = Uint8Array.from([42]);
+      pb.meta.refs.push(linkRef);
+
+      const getSegment = (_: Uint8Array): Segment => {
+        return null;
+      };
+
+      const link = new Link(pb);
+      expect(() => link.validate(getSegment)).toThrowError(ErrRefNotFound);
+    });
+
+    it("valid references", () => {
+      const link = new LinkBuilder("p1", "m1")
+        .withRefs([
+          new LinkReference(Uint8Array.from([42]), "p1"),
+          new LinkReference(Uint8Array.from([24]), "p2")
+        ])
+        .build();
+
+      const getSegment = (linkHash: Uint8Array): Segment => {
+        if (linkHash[0] === 42) {
+          return new LinkBuilder("p1", "m1").build().segmentify();
+        }
+
+        return null;
+      };
+
+      link.validate(getSegment);
     });
   });
 });

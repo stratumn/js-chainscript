@@ -179,7 +179,7 @@ describe("segment", () => {
       // Mutate the underlying link.
       link.meta.action = "override";
 
-      expect(() => segment.validate()).toThrowError(ErrLinkHashMismatch);
+      expect(() => segment.validate(null)).toThrowError(ErrLinkHashMismatch);
     });
 
     it("invalid link", () => {
@@ -190,7 +190,7 @@ describe("segment", () => {
       pbSegment.link = link;
 
       const segment = new Segment(pbSegment);
-      expect(() => segment.validate()).toThrowError(ErrLinkMetaMissing);
+      expect(() => segment.validate(null)).toThrowError(ErrLinkMetaMissing);
     });
   });
 });
