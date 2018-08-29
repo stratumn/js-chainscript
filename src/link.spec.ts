@@ -390,7 +390,7 @@ describe("link", () => {
 
       const signatures = link.signatures();
       expect(signatures).toHaveLength(2);
-      expect(signatures[0].payloadPath()).toEqual("");
+      expect(signatures[0].payloadPath()).toEqual("[version,data,meta]");
       expect(signatures[1].payloadPath()).toEqual("[version]");
 
       signatures[0].validate(link);

@@ -260,12 +260,11 @@ export class Link {
     });
 
     const toSign = this.signedBytes(constants.SIGNATURE_VERSION, payloadPath);
-    const signature = privateKey.sign(b64.fromByteArray(toSign));
+    const signature = privateKey.sign(atob(b64.fromByteArray(toSign)));
 
     const s = new stratumn.chainscript.Signature();
     s.version = constants.SIGNATURE_VERSION;
-    s.type = signature.AI;
-    s.payloadPath = payloadPath;
+    s.payloadPath = payloadPath || "[version,data,meta]";
     s.publicKey = b64.toByteArray(signature.public_key);
     s.signature = b64.toByteArray(signature.signature);
 

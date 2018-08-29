@@ -74,7 +74,7 @@ export class Signature {
         });
 
         const valid = publicKey.verify({
-          message: btoa(b64.fromByteArray(signed)),
+          message: b64.fromByteArray(signed),
           signature: b64.fromByteArray(this.signature())
         });
 
