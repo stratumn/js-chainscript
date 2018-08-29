@@ -380,7 +380,7 @@ describe("link", () => {
     it("rejects missing version", () => {
       const link = new Link(new stratumn.chainscript.Link());
       expect(() => link.validate(null)).toThrowError(
-        errors.ErrLinkVersionUnknown
+        errors.ErrLinkVersionMissing
       );
     });
 
