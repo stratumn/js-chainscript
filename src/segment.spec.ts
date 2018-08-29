@@ -1,20 +1,8 @@
-import {
-  ErrDuplicateEvidence,
-  ErrMissingBackend,
-  ErrMissingProof,
-  ErrMissingProvider,
-  ErrMissingVersion,
-  Evidence
-} from "./evidence";
-import { ErrLinkMetaMissing, ErrUnknownLinkVersion } from "./link";
+import * as errors from "./errors";
+import { Evidence } from "./evidence";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
-import {
-  deserialize,
-  ErrLinkHashMismatch,
-  ErrLinkMissing,
-  Segment
-} from "./segment";
+import { deserialize, Segment } from "./segment";
 
 describe("segment", () => {
   it("rejects unknown version", () => {
@@ -24,12 +12,14 @@ describe("segment", () => {
     const segment = new stratumn.chainscript.Segment();
     segment.link = link;
 
-    expect(() => new Segment(segment)).toThrowError(ErrUnknownLinkVersion);
+    expect(() => new Segment(segment)).toThrowError(
+      errors.ErrLinkVersionUnknown
+    );
   });
 
   it("rejects missing link", () => {
     expect(() => new Segment(new stratumn.chainscript.Segment())).toThrowError(
-      ErrLinkMissing
+      errors.ErrLinkMissing
     );
   });
 
@@ -95,7 +85,9 @@ describe("segment", () => {
       e.version = "";
 
       const segment = new LinkBuilder("p", "m").build().segmentify();
-      expect(() => segment.addEvidence(e)).toThrowError(ErrMissingVersion);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrEvidenceVersionMissing
+      );
     });
 
     it("rejects missing backend", () => {
@@ -103,7 +95,9 @@ describe("segment", () => {
       e.backend = "";
 
       const segment = new LinkBuilder("p", "m").build().segmentify();
-      expect(() => segment.addEvidence(e)).toThrowError(ErrMissingBackend);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrEvidenceBackendMissing
+      );
     });
 
     it("rejects missing provider", () => {
@@ -111,7 +105,9 @@ describe("segment", () => {
       e.provider = "";
 
       const segment = new LinkBuilder("p", "m").build().segmentify();
-      expect(() => segment.addEvidence(e)).toThrowError(ErrMissingProvider);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrEvidenceProviderMissing
+      );
     });
 
     it("rejects missing proof", () => {
@@ -119,14 +115,18 @@ describe("segment", () => {
       e.proof = new Uint8Array(0);
 
       const segment = new LinkBuilder("p", "m").build().segmentify();
-      expect(() => segment.addEvidence(e)).toThrowError(ErrMissingProof);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrEvidenceProofMissing
+      );
     });
 
     it("rejects duplicate evidence", () => {
       const e = createEvidence();
       const segment = new LinkBuilder("p", "m").build().segmentify();
       segment.addEvidence(e);
-      expect(() => segment.addEvidence(e)).toThrowError(ErrDuplicateEvidence);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrDuplicateEvidence
+      );
     });
 
     it("gets valid evidence", () => {
@@ -179,7 +179,9 @@ describe("segment", () => {
       // Mutate the underlying link.
       link.meta.action = "override";
 
-      expect(() => segment.validate(null)).toThrowError(ErrLinkHashMismatch);
+      expect(() => segment.validate(null)).toThrowError(
+        errors.ErrLinkHashMismatch
+      );
     });
 
     it("invalid link", () => {
@@ -190,7 +192,9 @@ describe("segment", () => {
       pbSegment.link = link;
 
       const segment = new Segment(pbSegment);
-      expect(() => segment.validate(null)).toThrowError(ErrLinkMetaMissing);
+      expect(() => segment.validate(null)).toThrowError(
+        errors.ErrLinkMetaMissing
+      );
     });
   });
 });

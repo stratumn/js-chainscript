@@ -1,12 +1,5 @@
+import * as errors from "./errors";
 import { stratumn } from "./proto/chainscript_pb";
-
-export const ErrMissingVersion = new TypeError("evidence version is missing");
-export const ErrMissingBackend = new TypeError("evidence backend is missing");
-export const ErrMissingProvider = new TypeError("evidence provider is missing");
-export const ErrMissingProof = new TypeError("evidence proof is missing");
-export const ErrDuplicateEvidence = new TypeError(
-  "evidence already exists for the given backend and provider"
-);
 
 /**
  * Create an evidence from a protobuf object.
@@ -58,19 +51,19 @@ export class Evidence {
    */
   public validate(): void {
     if (!this.version) {
-      throw ErrMissingVersion;
+      throw errors.ErrEvidenceVersionMissing;
     }
 
     if (!this.backend) {
-      throw ErrMissingBackend;
+      throw errors.ErrEvidenceBackendMissing;
     }
 
     if (!this.provider) {
-      throw ErrMissingProvider;
+      throw errors.ErrEvidenceProviderMissing;
     }
 
     if (!this.proof || this.proof.length === 0) {
-      throw ErrMissingProof;
+      throw errors.ErrEvidenceProofMissing;
     }
   }
 }

@@ -1,15 +1,16 @@
-import { ErrMissingLinkHash, ErrMissingProcess, LinkReference } from "./ref";
+import * as errors from "./errors";
+import { LinkReference } from "./ref";
 
 describe("link reference", () => {
   it("rejects missing process", () => {
     expect(() => new LinkReference(Uint8Array.from([42]), "")).toThrowError(
-      ErrMissingProcess
+      errors.ErrLinkProcessMissing
     );
   });
 
   it("rejects missing link hash", () => {
     expect(() => new LinkReference(new Uint8Array(0), "p")).toThrowError(
-      ErrMissingLinkHash
+      errors.ErrLinkHashMissing
     );
   });
 

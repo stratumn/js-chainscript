@@ -1,5 +1,6 @@
+import * as errors from "./errors";
 import { LinkBuilder } from "./link_builder";
-import { ErrMissingLinkHash, ErrMissingProcess, LinkReference } from "./ref";
+import { LinkReference } from "./ref";
 
 describe("link builder", () => {
   describe("defaults", () => {
@@ -135,7 +136,7 @@ describe("link builder", () => {
 
       expect(() =>
         new LinkBuilder("p", "m").withRefs([validRef, invalidRef])
-      ).toThrowError(ErrMissingProcess);
+      ).toThrowError(errors.ErrLinkProcessMissing);
     });
 
     it("rejects reference missing link hash", () => {
@@ -145,7 +146,7 @@ describe("link builder", () => {
 
       expect(() =>
         new LinkBuilder("p", "m").withRefs([validRef, invalidRef])
-      ).toThrowError(ErrMissingLinkHash);
+      ).toThrowError(errors.ErrLinkHashMissing);
     });
 
     it("adds multiple references", () => {

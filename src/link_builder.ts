@@ -1,7 +1,8 @@
 import * as constants from "./const";
+import * as errors from "./errors";
 import { Link } from "./link";
 import { stratumn } from "./proto/chainscript_pb";
-import { ErrMissingLinkHash, ErrMissingProcess, LinkReference } from "./ref";
+import { LinkReference } from "./ref";
 
 /**
  * ILinkBuilder makes it easy to create links that adhere to the ChainScript
@@ -147,11 +148,11 @@ export class LinkBuilder implements ILinkBuilder {
     const meta = this.link.meta as stratumn.chainscript.LinkMeta;
     const newRefs = refs.map(ref => {
       if (!ref.process) {
-        throw ErrMissingProcess;
+        throw errors.ErrLinkProcessMissing;
       }
 
       if (!ref.linkHash || ref.linkHash.length === 0) {
-        throw ErrMissingLinkHash;
+        throw errors.ErrLinkHashMissing;
       }
 
       const pbRef = new stratumn.chainscript.LinkReference();

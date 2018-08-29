@@ -4,22 +4,12 @@ import { parse, stringify } from "canonicaljson";
 import sha256 from "fast-sha256";
 import { search } from "jmespath";
 import * as constants from "./const";
+import * as errors from "./errors";
 import { Process } from "./process";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
-import { ErrLinkHashMissing, GetSegmentFunc, Segment } from "./segment";
-import { ErrUnknownSignatureVersion, Signature } from "./signature";
-
-export const ErrLinkMapIdMissing = new TypeError("link map id is missing");
-export const ErrLinkMetaMissing = new TypeError("link meta is missing");
-export const ErrLinkProcessMissing = new TypeError("link process is missing");
-export const ErrRefNotFound = new TypeError(
-  "referenced link could not be retrieved"
-);
-export const ErrUnknownClientId = new TypeError(
-  "link was created with an unknown client: can't deserialize it"
-);
-export const ErrUnknownLinkVersion = new TypeError("unknown link version");
+import { GetSegmentFunc, Segment } from "./segment";
+import { Signature } from "./signature";
 
 /**
  * Deserialize a link.
@@ -49,7 +39,7 @@ export class Link {
   public action(): string {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     return meta.action || "";
@@ -63,7 +53,7 @@ export class Link {
   public clientId(): string {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     return meta.clientId || "";
@@ -85,7 +75,7 @@ export class Link {
       case constants.LINK_VERSION_1_0_0:
         return parse(atob(b64.fromByteArray(linkData)));
       default:
-        throw ErrUnknownLinkVersion;
+        throw errors.ErrLinkVersionUnknown;
     }
   }
 
@@ -100,7 +90,7 @@ export class Link {
         const linkBytes = stratumn.chainscript.Link.encode(this.link).finish();
         return sha256(linkBytes);
       default:
-        throw ErrUnknownLinkVersion;
+        throw errors.ErrLinkVersionUnknown;
     }
   }
 
@@ -111,7 +101,7 @@ export class Link {
   public mapId(): string {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     return meta.mapId || "";
@@ -133,7 +123,7 @@ export class Link {
       case constants.LINK_VERSION_1_0_0:
         return parse(atob(b64.fromByteArray(linkMetadata)));
       default:
-        throw ErrUnknownLinkVersion;
+        throw errors.ErrLinkVersionUnknown;
     }
   }
 
@@ -144,7 +134,7 @@ export class Link {
   public prevLinkHash(): Uint8Array {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     return meta.prevLinkHash || new Uint8Array(0);
@@ -157,7 +147,7 @@ export class Link {
   public priority(): number {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     return meta.priority || 0;
@@ -170,12 +160,12 @@ export class Link {
   public process(): Process {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     const process = meta.process;
     if (!process) {
-      throw ErrLinkProcessMissing;
+      throw errors.ErrLinkProcessMissing;
     }
 
     return new Process(process.name || "", process.state || "");
@@ -188,7 +178,7 @@ export class Link {
   public refs(): LinkReference[] {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     if (!meta.refs) {
@@ -231,7 +221,7 @@ export class Link {
         this.link.data = b64.toByteArray(btoa(stringify(data)));
         return;
       default:
-        throw ErrUnknownLinkVersion;
+        throw errors.ErrLinkVersionUnknown;
     }
   }
 
@@ -243,7 +233,7 @@ export class Link {
     this.verifyCompatibility();
 
     if (!this.link.meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     switch (this.version()) {
@@ -251,7 +241,7 @@ export class Link {
         this.link.meta.data = b64.toByteArray(btoa(stringify(data)));
         return;
       default:
-        throw ErrUnknownLinkVersion;
+        throw errors.ErrLinkVersionUnknown;
     }
   }
 
@@ -313,7 +303,7 @@ export class Link {
 
         return sha256(payloadBytes);
       default:
-        throw ErrUnknownSignatureVersion;
+        throw errors.ErrSignatureVersionUnknown;
     }
   }
 
@@ -324,7 +314,7 @@ export class Link {
   public step(): string {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     return meta.step || "";
@@ -338,7 +328,7 @@ export class Link {
   public tags(): string[] {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     return meta.tags || [];
@@ -349,38 +339,38 @@ export class Link {
    */
   public validate(getSegment: GetSegmentFunc): void {
     if (!this.link.version) {
-      throw ErrUnknownLinkVersion;
+      throw errors.ErrLinkVersionMissing;
     }
 
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     if (!meta.mapId) {
-      throw ErrLinkMapIdMissing;
+      throw errors.ErrLinkMapIdMissing;
     }
 
     if (!meta.process || !meta.process.name) {
-      throw ErrLinkProcessMissing;
+      throw errors.ErrLinkProcessMissing;
     }
 
     this.verifyCompatibility();
 
     this.refs().map(r => {
       if (!r.process) {
-        throw ErrLinkProcessMissing;
+        throw errors.ErrLinkProcessMissing;
       }
 
       if (!r.linkHash || r.linkHash.length === 0) {
-        throw ErrLinkHashMissing;
+        throw errors.ErrLinkHashMissing;
       }
 
       // We only check the referenced segment if it's in the same process.
       if (r.process === this.process().name && getSegment) {
         const seg = getSegment(r.linkHash);
         if (!seg) {
-          throw ErrRefNotFound;
+          throw errors.ErrRefNotFound;
         }
       }
     });
@@ -405,12 +395,12 @@ export class Link {
   private verifyCompatibility(): void {
     const meta = this.link.meta;
     if (!meta) {
-      throw ErrLinkMetaMissing;
+      throw errors.ErrLinkMetaMissing;
     }
 
     const clientId = meta.clientId;
     if (!clientId) {
-      throw ErrUnknownClientId;
+      throw errors.ErrLinkClientIdUnkown;
     }
 
     const compatibleClients = [
@@ -419,7 +409,7 @@ export class Link {
     ];
 
     if (compatibleClients.indexOf(clientId) < 0) {
-      throw ErrUnknownClientId;
+      throw errors.ErrLinkClientIdUnkown;
     }
   }
 }

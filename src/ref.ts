@@ -1,5 +1,4 @@
-export const ErrMissingProcess = new TypeError("process is missing");
-export const ErrMissingLinkHash = new TypeError("link hash is missing");
+import * as errors from "./errors";
 
 /**
  * A reference to a link that can be in another process.
@@ -10,11 +9,11 @@ export class LinkReference {
 
   constructor(linkHash: Uint8Array, process: string) {
     if (!process) {
-      throw ErrMissingProcess;
+      throw errors.ErrLinkProcessMissing;
     }
 
     if (!linkHash || linkHash.length === 0) {
-      throw ErrMissingLinkHash;
+      throw errors.ErrLinkHashMissing;
     }
 
     this.linkHash = linkHash;

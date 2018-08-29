@@ -1,11 +1,5 @@
-import {
-  ErrMissingBackend,
-  ErrMissingProof,
-  ErrMissingProvider,
-  ErrMissingVersion,
-  Evidence,
-  fromProto
-} from "./evidence";
+import * as errors from "./errors";
+import { Evidence, fromProto } from "./evidence";
 import { stratumn } from "./proto/chainscript_pb";
 
 describe("evidence", () => {
@@ -14,25 +8,25 @@ describe("evidence", () => {
   it("rejects missing version", () => {
     expect(
       () => new Evidence("", "bitcoin", "mainnet", proofData)
-    ).toThrowError(ErrMissingVersion);
+    ).toThrowError(errors.ErrEvidenceVersionMissing);
   });
 
   it("rejects missing backend", () => {
     expect(() => new Evidence("0.1.0", "", "mainnet", proofData)).toThrowError(
-      ErrMissingBackend
+      errors.ErrEvidenceBackendMissing
     );
   });
 
   it("rejects missing provider", () => {
     expect(() => new Evidence("0.1.0", "bitcoin", "", proofData)).toThrowError(
-      ErrMissingProvider
+      errors.ErrEvidenceProviderMissing
     );
   });
 
   it("rejects missing proof", () => {
     expect(
       () => new Evidence("0.1.0", "bitcoin", "mainnet", new Uint8Array(0))
-    ).toThrowError(ErrMissingProof);
+    ).toThrowError(errors.ErrEvidenceProofMissing);
   });
 
   it("converts from valid proto", () => {
@@ -51,7 +45,7 @@ describe("evidence", () => {
 
   it("rejects invalid proto", () => {
     expect(() => fromProto(new stratumn.chainscript.Evidence())).toThrowError(
-      ErrMissingVersion
+      errors.ErrEvidenceVersionMissing
     );
   });
 });

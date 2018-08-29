@@ -1,11 +1,7 @@
+import * as errors from "./errors";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
-import {
-  ErrSignatureMissing,
-  ErrSignaturePublicKeyMissing,
-  ErrUnknownSignatureVersion,
-  Signature
-} from "./signature";
+import { Signature } from "./signature";
 
 describe("signature", () => {
   it("uses empty default values", () => {
@@ -42,7 +38,7 @@ describe("signature", () => {
 
       const s = new Signature(pb);
       expect(() => s.validate(new LinkBuilder("p", "m").build())).toThrowError(
-        ErrUnknownSignatureVersion
+        errors.ErrSignatureVersionUnknown
       );
     });
 
@@ -53,7 +49,7 @@ describe("signature", () => {
 
       const s = new Signature(pb);
       expect(() => s.validate(new LinkBuilder("p", "m").build())).toThrowError(
-        ErrSignaturePublicKeyMissing
+        errors.ErrSignaturePublicKeyMissing
       );
     });
 
@@ -64,7 +60,7 @@ describe("signature", () => {
 
       const s = new Signature(pb);
       expect(() => s.validate(new LinkBuilder("p", "m").build())).toThrowError(
-        ErrSignatureMissing
+        errors.ErrSignatureMissing
       );
     });
   });

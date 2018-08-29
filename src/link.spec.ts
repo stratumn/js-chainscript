@@ -1,18 +1,10 @@
 import { sig } from "@stratumn/js-crypto";
 import { SIGNATURE_VERSION_1_0_0 } from "./const";
-import {
-  deserialize,
-  ErrLinkMapIdMissing,
-  ErrLinkMetaMissing,
-  ErrLinkProcessMissing,
-  ErrRefNotFound,
-  ErrUnknownClientId,
-  ErrUnknownLinkVersion,
-  Link
-} from "./link";
+import * as errors from "./errors";
+import { deserialize, Link } from "./link";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
-import { ErrMissingProcess, LinkReference } from "./ref";
+import { LinkReference } from "./ref";
 import { Segment } from "./segment";
 import { ErrInvalidSignature, ErrUnknownSignatureVersion } from "./signature";
 
@@ -59,15 +51,15 @@ describe("link", () => {
   it("throws when meta is missing", () => {
     const link = new Link(new stratumn.chainscript.Link());
 
-    expect(() => link.action()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.clientId()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.mapId()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.prevLinkHash()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.priority()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.process()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.refs()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.step()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.tags()).toThrowError(ErrLinkMetaMissing);
+    expect(() => link.action()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.clientId()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.mapId()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.prevLinkHash()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.priority()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.process()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.refs()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.step()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.tags()).toThrowError(errors.ErrLinkMetaMissing);
   });
 
   describe("data", () => {
@@ -75,8 +67,10 @@ describe("link", () => {
 
     it("rejects missing meta", () => {
       const link = new Link(new stratumn.chainscript.Link());
-      expect(() => link.data()).toThrowError(ErrLinkMetaMissing);
-      expect(() => link.setData(customData)).toThrowError(ErrLinkMetaMissing);
+      expect(() => link.data()).toThrowError(errors.ErrLinkMetaMissing);
+      expect(() => link.setData(customData)).toThrowError(
+        errors.ErrLinkMetaMissing
+      );
     });
 
     it("rejects incompatible client id", () => {
@@ -85,8 +79,10 @@ describe("link", () => {
       pbLink.meta.clientId = "github.com/some-random-guy/with-custom-impl";
 
       const link = new Link(pbLink);
-      expect(() => link.data()).toThrowError(ErrUnknownClientId);
-      expect(() => link.setData(customData)).toThrowError(ErrUnknownClientId);
+      expect(() => link.data()).toThrowError(errors.ErrLinkClientIdUnkown);
+      expect(() => link.setData(customData)).toThrowError(
+        errors.ErrLinkClientIdUnkown
+      );
     });
 
     it("rejects unknown version", () => {
@@ -98,9 +94,9 @@ describe("link", () => {
       pbLink.meta.clientId = "github.com/stratumn/go-chainscript";
 
       const link = new Link(pbLink);
-      expect(() => link.data()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.data()).toThrowError(errors.ErrLinkVersionUnknown);
       expect(() => link.setData(customData)).toThrowError(
-        ErrUnknownLinkVersion
+        errors.ErrLinkVersionUnknown
       );
     });
 
@@ -128,9 +124,9 @@ describe("link", () => {
 
     it("rejects missing meta", () => {
       const link = new Link(new stratumn.chainscript.Link());
-      expect(() => link.metadata()).toThrowError(ErrLinkMetaMissing);
+      expect(() => link.metadata()).toThrowError(errors.ErrLinkMetaMissing);
       expect(() => link.setMetadata(customMetadata)).toThrowError(
-        ErrLinkMetaMissing
+        errors.ErrLinkMetaMissing
       );
     });
 
@@ -140,9 +136,9 @@ describe("link", () => {
       pbLink.meta.clientId = "github.com/some-random-guy/with-custom-impl";
 
       const link = new Link(pbLink);
-      expect(() => link.metadata()).toThrowError(ErrUnknownClientId);
+      expect(() => link.metadata()).toThrowError(errors.ErrLinkClientIdUnkown);
       expect(() => link.setMetadata(customMetadata)).toThrowError(
-        ErrUnknownClientId
+        errors.ErrLinkClientIdUnkown
       );
     });
 
@@ -154,9 +150,9 @@ describe("link", () => {
       pbLink.meta.data = Uint8Array.from([42]);
 
       const link = new Link(pbLink);
-      expect(() => link.metadata()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.metadata()).toThrowError(errors.ErrLinkVersionUnknown);
       expect(() => link.setMetadata(customMetadata)).toThrowError(
-        ErrUnknownLinkVersion
+        errors.ErrLinkVersionUnknown
       );
     });
 
@@ -185,7 +181,7 @@ describe("link", () => {
       pbLink.version = "0.42.0";
 
       const link = new Link(pbLink);
-      expect(() => link.hash()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.hash()).toThrowError(errors.ErrLinkVersionUnknown);
     });
 
     describe("version 1.0.0", () => {
@@ -209,7 +205,9 @@ describe("link", () => {
       pbLink.version = "0.42.0";
 
       const link = new Link(pbLink);
-      expect(() => link.segmentify()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.segmentify()).toThrowError(
+        errors.ErrLinkVersionUnknown
+      );
     });
 
     it("hashes link in segment meta", () => {
@@ -381,7 +379,9 @@ describe("link", () => {
   describe("validate", () => {
     it("rejects missing version", () => {
       const link = new Link(new stratumn.chainscript.Link());
-      expect(() => link.validate(null)).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkVersionUnknown
+      );
     });
 
     it("rejects missing meta", () => {
@@ -389,7 +389,7 @@ describe("link", () => {
       pb.version = "1.0.0";
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(ErrLinkMetaMissing);
+      expect(() => link.validate(null)).toThrowError(errors.ErrLinkMetaMissing);
     });
 
     it("rejects missing map id", () => {
@@ -400,7 +400,9 @@ describe("link", () => {
       pb.meta.process.name = "p";
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(ErrLinkMapIdMissing);
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkMapIdMissing
+      );
     });
 
     it("rejects missing process", () => {
@@ -410,7 +412,9 @@ describe("link", () => {
       pb.meta.mapId = "m";
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(ErrLinkProcessMissing);
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkProcessMissing
+      );
     });
 
     it("rejects incompatible clients", () => {
@@ -423,7 +427,9 @@ describe("link", () => {
       pb.meta.process.name = "p";
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(ErrUnknownClientId);
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkClientIdUnkown
+      );
     });
 
     it("rejects invalid reference", () => {
@@ -438,7 +444,9 @@ describe("link", () => {
       pb.meta.refs.push(new stratumn.chainscript.LinkReference());
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(ErrMissingProcess);
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkProcessMissing
+      );
     });
 
     it("rejects missing reference", () => {
@@ -461,7 +469,9 @@ describe("link", () => {
       };
 
       const link = new Link(pb);
-      expect(() => link.validate(getSegment)).toThrowError(ErrRefNotFound);
+      expect(() => link.validate(getSegment)).toThrowError(
+        errors.ErrRefNotFound
+      );
     });
 
     it("valid references", () => {

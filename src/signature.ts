@@ -1,17 +1,9 @@
 import { sig } from "@stratumn/js-crypto";
 import * as b64 from "base64-js";
 import * as constants from "./const";
+import * as errors from "./errors";
 import { Link } from "./link";
 import { stratumn } from "./proto/chainscript_pb";
-
-export const ErrUnknownSignatureVersion = new TypeError(
-  "unknown signature version"
-);
-export const ErrSignatureMissing = new TypeError("signature bytes are missing");
-export const ErrSignaturePublicKeyMissing = new TypeError(
-  "signature public key is missing"
-);
-export const ErrInvalidSignature = new TypeError("signature is invalid");
 
 /**
  * A signature of configurable parts of a link.
@@ -67,11 +59,11 @@ export class Signature {
    */
   public validate(link: Link): void {
     if (!this.publicKey() || this.publicKey().length === 0) {
-      throw ErrSignaturePublicKeyMissing;
+      throw errors.ErrSignaturePublicKeyMissing;
     }
 
     if (!this.signature() || this.signature().length === 0) {
-      throw ErrSignatureMissing;
+      throw errors.ErrSignatureMissing;
     }
 
     switch (this.version()) {
@@ -87,11 +79,11 @@ export class Signature {
         });
 
         if (!valid) {
-          throw ErrInvalidSignature;
+          throw errors.ErrSignatureInvalid;
         }
         return;
       default:
-        throw ErrUnknownSignatureVersion;
+        throw errors.ErrSignatureVersionUnknown;
     }
   }
 }

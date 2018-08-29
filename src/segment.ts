@@ -1,16 +1,8 @@
 import * as b64 from "base64-js";
-import {
-  ErrDuplicateEvidence,
-  Evidence,
-  fromProto as evidenceFromProto
-} from "./evidence";
+import * as errors from "./errors";
+import { Evidence, fromProto as evidenceFromProto } from "./evidence";
 import { Link } from "./link";
 import { stratumn } from "./proto/chainscript_pb";
-
-export const ErrLinkMissing = new TypeError("link is missing");
-export const ErrLinkHashMissing = new TypeError("link hash is missing");
-export const ErrLinkHashMismatch = new TypeError("link hash mismatch");
-export const ErrSegmentMetaMissing = new TypeError("segment meta is missing");
 
 /**
  * GetSegmentFunc fetches segments from a store.
@@ -37,7 +29,7 @@ export class Segment {
 
   constructor(pbSegment: stratumn.chainscript.Segment) {
     if (!pbSegment.link) {
-      throw ErrLinkMissing;
+      throw errors.ErrLinkMissing;
     }
 
     this.pbLink = pbSegment.link as stratumn.chainscript.Link;
@@ -60,7 +52,7 @@ export class Segment {
     e.validate();
 
     if (this.getEvidence(e.backend, e.provider)) {
-      throw ErrDuplicateEvidence;
+      throw errors.ErrDuplicateEvidence;
     }
 
     const pbEvidence = new stratumn.chainscript.Evidence();
@@ -142,18 +134,18 @@ export class Segment {
    */
   public validate(getSegment: GetSegmentFunc): void {
     if (!this.pbSegment.meta) {
-      throw ErrSegmentMetaMissing;
+      throw errors.ErrSegmentMetaMissing;
     }
 
     if (!this.linkHash() || this.linkHash().length === 0) {
-      throw ErrLinkHashMissing;
+      throw errors.ErrLinkHashMissing;
     }
 
     if (
       b64.fromByteArray(this.linkHash()) !==
       b64.fromByteArray(this.link().hash())
     ) {
-      throw ErrLinkHashMismatch;
+      throw errors.ErrLinkHashMismatch;
     }
 
     this.link().validate(getSegment);
