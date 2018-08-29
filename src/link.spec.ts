@@ -261,6 +261,7 @@ describe("link", () => {
 
         const serialized = link.serialize();
         const link2 = deserialize(serialized);
+        link2.validate(null);
 
         expect(link2.hash()).toEqual(link.hash());
 
@@ -273,6 +274,30 @@ describe("link", () => {
         // match, so we compare the data inside.
         expect(link2.refs()[0].linkHash[0]).toEqual(24);
         expect(link2.refs()[1].linkHash[0]).toEqual(42);
+      });
+
+      it("with signatures", () => {
+        const link = new LinkBuilder("p", "m")
+          .withAction("init")
+          .withData("b4tm4n")
+          .build();
+
+        const keyBytes = new sig.SigningPrivateKey({
+          algo: sig.SIGNING_ALGO_RSA.name
+        }).export();
+
+        link.sign(keyBytes, "");
+        link.sign(keyBytes, "[version,data]");
+
+        const serialized = link.serialize();
+        const link2 = deserialize(serialized);
+        link2.validate(null);
+
+        expect(link2.hash()).toEqual(link.hash());
+
+        expect(link2.signatures()).toHaveLength(2);
+        link2.signatures()[0].validate(link);
+        link2.signatures()[1].validate(link);
       });
     });
   });

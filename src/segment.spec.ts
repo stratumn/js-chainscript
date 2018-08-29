@@ -44,7 +44,10 @@ describe("segment", () => {
 
     it("serializes and deserializes correctly", () => {
       const segment = new LinkBuilder("p", "m")
+        .withAction("init")
         .withData({ name: "spongebob" })
+        .withPriority(42)
+        .withTags(["tag"])
         .build()
         .segmentify();
 
@@ -58,6 +61,11 @@ describe("segment", () => {
 
       const serialized = segment.serialize();
       const segment2 = deserialize(serialized);
+      segment2.validate(null);
+
+      expect(segment2.link().action()).toEqual("init");
+      expect(segment2.link().priority()).toEqual(42);
+      expect(segment2.link().tags()).toEqual(["tag"]);
 
       expect(segment2.linkHash()).toEqual(segment.linkHash());
       expect(segment2.linkHash()).toEqual(segment.link().hash());
