@@ -1,15 +1,11 @@
+import { sig } from "@stratumn/js-crypto";
 import { SIGNATURE_VERSION_1_0_0 } from "./const";
-import {
-  deserialize,
-  ErrLinkMetaMissing,
-  ErrUnknownClientId,
-  ErrUnknownLinkVersion,
-  ErrUnknownSignatureVersion,
-  Link
-} from "./link";
+import * as errors from "./errors";
+import { deserialize, Link } from "./link";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
+import { Segment } from "./segment";
 
 /**
  * Create a valid test link for version 1.0.0.
@@ -54,15 +50,15 @@ describe("link", () => {
   it("throws when meta is missing", () => {
     const link = new Link(new stratumn.chainscript.Link());
 
-    expect(() => link.action()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.clientId()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.mapId()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.prevLinkHash()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.priority()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.process()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.refs()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.step()).toThrowError(ErrLinkMetaMissing);
-    expect(() => link.tags()).toThrowError(ErrLinkMetaMissing);
+    expect(() => link.action()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.clientId()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.mapId()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.prevLinkHash()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.priority()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.process()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.refs()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.step()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.tags()).toThrowError(errors.ErrLinkMetaMissing);
   });
 
   describe("data", () => {
@@ -70,8 +66,10 @@ describe("link", () => {
 
     it("rejects missing meta", () => {
       const link = new Link(new stratumn.chainscript.Link());
-      expect(() => link.data()).toThrowError(ErrLinkMetaMissing);
-      expect(() => link.setData(customData)).toThrowError(ErrLinkMetaMissing);
+      expect(() => link.data()).toThrowError(errors.ErrLinkMetaMissing);
+      expect(() => link.setData(customData)).toThrowError(
+        errors.ErrLinkMetaMissing
+      );
     });
 
     it("rejects incompatible client id", () => {
@@ -80,8 +78,10 @@ describe("link", () => {
       pbLink.meta.clientId = "github.com/some-random-guy/with-custom-impl";
 
       const link = new Link(pbLink);
-      expect(() => link.data()).toThrowError(ErrUnknownClientId);
-      expect(() => link.setData(customData)).toThrowError(ErrUnknownClientId);
+      expect(() => link.data()).toThrowError(errors.ErrLinkClientIdUnkown);
+      expect(() => link.setData(customData)).toThrowError(
+        errors.ErrLinkClientIdUnkown
+      );
     });
 
     it("rejects unknown version", () => {
@@ -93,9 +93,9 @@ describe("link", () => {
       pbLink.meta.clientId = "github.com/stratumn/go-chainscript";
 
       const link = new Link(pbLink);
-      expect(() => link.data()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.data()).toThrowError(errors.ErrLinkVersionUnknown);
       expect(() => link.setData(customData)).toThrowError(
-        ErrUnknownLinkVersion
+        errors.ErrLinkVersionUnknown
       );
     });
 
@@ -123,9 +123,9 @@ describe("link", () => {
 
     it("rejects missing meta", () => {
       const link = new Link(new stratumn.chainscript.Link());
-      expect(() => link.metadata()).toThrowError(ErrLinkMetaMissing);
+      expect(() => link.metadata()).toThrowError(errors.ErrLinkMetaMissing);
       expect(() => link.setMetadata(customMetadata)).toThrowError(
-        ErrLinkMetaMissing
+        errors.ErrLinkMetaMissing
       );
     });
 
@@ -135,9 +135,9 @@ describe("link", () => {
       pbLink.meta.clientId = "github.com/some-random-guy/with-custom-impl";
 
       const link = new Link(pbLink);
-      expect(() => link.metadata()).toThrowError(ErrUnknownClientId);
+      expect(() => link.metadata()).toThrowError(errors.ErrLinkClientIdUnkown);
       expect(() => link.setMetadata(customMetadata)).toThrowError(
-        ErrUnknownClientId
+        errors.ErrLinkClientIdUnkown
       );
     });
 
@@ -149,9 +149,9 @@ describe("link", () => {
       pbLink.meta.data = Uint8Array.from([42]);
 
       const link = new Link(pbLink);
-      expect(() => link.metadata()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.metadata()).toThrowError(errors.ErrLinkVersionUnknown);
       expect(() => link.setMetadata(customMetadata)).toThrowError(
-        ErrUnknownLinkVersion
+        errors.ErrLinkVersionUnknown
       );
     });
 
@@ -180,7 +180,7 @@ describe("link", () => {
       pbLink.version = "0.42.0";
 
       const link = new Link(pbLink);
-      expect(() => link.hash()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.hash()).toThrowError(errors.ErrLinkVersionUnknown);
     });
 
     describe("version 1.0.0", () => {
@@ -204,7 +204,9 @@ describe("link", () => {
       pbLink.version = "0.42.0";
 
       const link = new Link(pbLink);
-      expect(() => link.segmentify()).toThrowError(ErrUnknownLinkVersion);
+      expect(() => link.segmentify()).toThrowError(
+        errors.ErrLinkVersionUnknown
+      );
     });
 
     it("hashes link in segment meta", () => {
@@ -259,6 +261,7 @@ describe("link", () => {
 
         const serialized = link.serialize();
         const link2 = deserialize(serialized);
+        link2.validate(null);
 
         expect(link2.hash()).toEqual(link.hash());
 
@@ -272,6 +275,30 @@ describe("link", () => {
         expect(link2.refs()[0].linkHash[0]).toEqual(24);
         expect(link2.refs()[1].linkHash[0]).toEqual(42);
       });
+
+      it("with signatures", () => {
+        const link = new LinkBuilder("p", "m")
+          .withAction("init")
+          .withData("b4tm4n")
+          .build();
+
+        const keyBytes = new sig.SigningPrivateKey({
+          algo: sig.SIGNING_ALGO_RSA.name
+        }).export();
+
+        link.sign(keyBytes, "");
+        link.sign(keyBytes, "[version,data]");
+
+        const serialized = link.serialize();
+        const link2 = deserialize(serialized);
+        link2.validate(null);
+
+        expect(link2.hash()).toEqual(link.hash());
+
+        expect(link2.signatures()).toHaveLength(2);
+        link2.signatures()[0].validate(link);
+        link2.signatures()[1].validate(link);
+      });
     });
   });
 
@@ -279,7 +306,7 @@ describe("link", () => {
     it("rejects unknown version", () => {
       const link = new LinkBuilder("p", "m").build();
       expect(() => link.signedBytes("0.1.0", "")).toThrowError(
-        ErrUnknownSignatureVersion
+        errors.ErrSignatureVersionUnknown
       );
     });
 
@@ -324,6 +351,170 @@ describe("link", () => {
 
         expect(b1).not.toEqual(b2);
       });
+    });
+  });
+
+  describe("sign", () => {
+    const keyBytes = new sig.SigningPrivateKey({
+      algo: sig.SIGNING_ALGO_RSA.name
+    }).export();
+
+    it("rejects invalid private key", () => {
+      const link = new LinkBuilder("p", "m").build();
+      expect(() => link.sign(Uint8Array.from([42]), "")).toThrowError();
+    });
+
+    it("rejects invalid payload path", () => {
+      const link = new LinkBuilder("p", "m").build();
+      expect(() => link.sign(keyBytes, "[data,")).toThrowError();
+    });
+
+    it("rejects invalid signature", () => {
+      const l1 = new LinkBuilder("p1", "m1").build();
+      l1.sign(keyBytes, "[meta]");
+
+      const signatures = l1.signatures();
+      expect(signatures).toHaveLength(1);
+      signatures[0].validate(l1);
+
+      const l2 = new LinkBuilder("p2", "m2").build();
+      expect(() => signatures[0].validate(l2)).toThrowError(
+        errors.ErrSignatureInvalid
+      );
+    });
+
+    it("supports multiple signatures", () => {
+      const link = new LinkBuilder("p", "m").build();
+      link.sign(keyBytes, "");
+      link.sign(keyBytes, "[version]");
+
+      const signatures = link.signatures();
+      expect(signatures).toHaveLength(2);
+      expect(signatures[0].payloadPath()).toEqual("[version,data,meta]");
+      expect(signatures[1].payloadPath()).toEqual("[version]");
+
+      signatures[0].validate(link);
+      signatures[1].validate(link);
+
+      link.validate(null);
+    });
+  });
+
+  describe("validate", () => {
+    it("rejects missing version", () => {
+      const link = new Link(new stratumn.chainscript.Link());
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkVersionMissing
+      );
+    });
+
+    it("rejects missing meta", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+
+      const link = new Link(pb);
+      expect(() => link.validate(null)).toThrowError(errors.ErrLinkMetaMissing);
+    });
+
+    it("rejects missing map id", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.process = new stratumn.chainscript.Process();
+      pb.meta.process.name = "p";
+
+      const link = new Link(pb);
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkMapIdMissing
+      );
+    });
+
+    it("rejects missing process", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.mapId = "m";
+
+      const link = new Link(pb);
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkProcessMissing
+      );
+    });
+
+    it("rejects incompatible clients", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.clientId = "github.com/some/lib";
+      pb.meta.mapId = "m";
+      pb.meta.process = new stratumn.chainscript.Process();
+      pb.meta.process.name = "p";
+
+      const link = new Link(pb);
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkClientIdUnkown
+      );
+    });
+
+    it("rejects invalid reference", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.clientId = "github.com/stratumn/go-chainscript";
+      pb.meta.mapId = "m";
+      pb.meta.process = new stratumn.chainscript.Process();
+      pb.meta.process.name = "p";
+      pb.meta.refs.push(new stratumn.chainscript.LinkReference());
+
+      const link = new Link(pb);
+      expect(() => link.validate(null)).toThrowError(
+        errors.ErrLinkProcessMissing
+      );
+    });
+
+    it("rejects missing reference", () => {
+      const pb = new stratumn.chainscript.Link();
+      pb.version = "1.0.0";
+
+      pb.meta = new stratumn.chainscript.LinkMeta();
+      pb.meta.clientId = "github.com/stratumn/go-chainscript";
+      pb.meta.mapId = "m";
+      pb.meta.process = new stratumn.chainscript.Process();
+      pb.meta.process.name = "p";
+
+      const linkRef = new stratumn.chainscript.LinkReference();
+      linkRef.process = "p";
+      linkRef.linkHash = Uint8Array.from([42]);
+      pb.meta.refs.push(linkRef);
+
+      const getSegment = (_: Uint8Array): Segment => {
+        return null;
+      };
+
+      const link = new Link(pb);
+      expect(() => link.validate(getSegment)).toThrowError(
+        errors.ErrRefNotFound
+      );
+    });
+
+    it("valid references", () => {
+      const link = new LinkBuilder("p1", "m1")
+        .withRefs([
+          new LinkReference(Uint8Array.from([42]), "p1"),
+          new LinkReference(Uint8Array.from([24]), "p2")
+        ])
+        .build();
+
+      const getSegment = (linkHash: Uint8Array): Segment => {
+        if (linkHash[0] === 42) {
+          return new LinkBuilder("p1", "m1").build().segmentify();
+        }
+
+        return null;
+      };
+
+      link.validate(getSegment);
     });
   });
 });

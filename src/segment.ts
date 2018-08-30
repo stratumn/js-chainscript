@@ -1,12 +1,14 @@
-import {
-  ErrDuplicateEvidence,
-  Evidence,
-  fromProto as evidenceFromProto
-} from "./evidence";
+import * as b64 from "base64-js";
+import * as errors from "./errors";
+import { Evidence, fromProto as evidenceFromProto } from "./evidence";
 import { Link } from "./link";
 import { stratumn } from "./proto/chainscript_pb";
 
-export const ErrMissingLink = new TypeError("link is missing");
+/**
+ * GetSegmentFunc fetches segments from a store.
+ * It can be used to validate that references exist.
+ */
+export type GetSegmentFunc = (linkHash: Uint8Array) => Segment;
 
 /**
  * Deserialize a segment.
@@ -27,7 +29,7 @@ export class Segment {
 
   constructor(pbSegment: stratumn.chainscript.Segment) {
     if (!pbSegment.link) {
-      throw ErrMissingLink;
+      throw errors.ErrLinkMissing;
     }
 
     this.pbLink = pbSegment.link as stratumn.chainscript.Link;
@@ -50,7 +52,7 @@ export class Segment {
     e.validate();
 
     if (this.getEvidence(e.backend, e.provider)) {
-      throw ErrDuplicateEvidence;
+      throw errors.ErrDuplicateEvidence;
     }
 
     const pbEvidence = new stratumn.chainscript.Evidence();
@@ -125,5 +127,27 @@ export class Segment {
    */
   public serialize(): Uint8Array {
     return stratumn.chainscript.Segment.encode(this.pbSegment).finish();
+  }
+
+  /**
+   * Validate checks for errors in a segment.
+   */
+  public validate(getSegment: GetSegmentFunc): void {
+    if (!this.pbSegment.meta) {
+      throw errors.ErrSegmentMetaMissing;
+    }
+
+    if (!this.linkHash() || this.linkHash().length === 0) {
+      throw errors.ErrLinkHashMissing;
+    }
+
+    if (
+      b64.fromByteArray(this.linkHash()) !==
+      b64.fromByteArray(this.link().hash())
+    ) {
+      throw errors.ErrLinkHashMismatch;
+    }
+
+    this.link().validate(getSegment);
   }
 }

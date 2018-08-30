@@ -1,15 +1,8 @@
-import {
-  ErrDuplicateEvidence,
-  ErrMissingBackend,
-  ErrMissingProof,
-  ErrMissingProvider,
-  ErrMissingVersion,
-  Evidence
-} from "./evidence";
-import { ErrUnknownLinkVersion } from "./link";
+import * as errors from "./errors";
+import { Evidence } from "./evidence";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
-import { deserialize, ErrMissingLink, Segment } from "./segment";
+import { deserialize, Segment } from "./segment";
 
 describe("segment", () => {
   it("rejects unknown version", () => {
@@ -19,12 +12,14 @@ describe("segment", () => {
     const segment = new stratumn.chainscript.Segment();
     segment.link = link;
 
-    expect(() => new Segment(segment)).toThrowError(ErrUnknownLinkVersion);
+    expect(() => new Segment(segment)).toThrowError(
+      errors.ErrLinkVersionUnknown
+    );
   });
 
   it("rejects missing link", () => {
     expect(() => new Segment(new stratumn.chainscript.Segment())).toThrowError(
-      ErrMissingLink
+      errors.ErrLinkMissing
     );
   });
 
@@ -49,7 +44,10 @@ describe("segment", () => {
 
     it("serializes and deserializes correctly", () => {
       const segment = new LinkBuilder("p", "m")
+        .withAction("init")
         .withData({ name: "spongebob" })
+        .withPriority(42)
+        .withTags(["tag"])
         .build()
         .segmentify();
 
@@ -63,6 +61,11 @@ describe("segment", () => {
 
       const serialized = segment.serialize();
       const segment2 = deserialize(serialized);
+      segment2.validate(null);
+
+      expect(segment2.link().action()).toEqual("init");
+      expect(segment2.link().priority()).toEqual(42);
+      expect(segment2.link().tags()).toEqual(["tag"]);
 
       expect(segment2.linkHash()).toEqual(segment.linkHash());
       expect(segment2.linkHash()).toEqual(segment.link().hash());
@@ -90,7 +93,9 @@ describe("segment", () => {
       e.version = "";
 
       const segment = new LinkBuilder("p", "m").build().segmentify();
-      expect(() => segment.addEvidence(e)).toThrowError(ErrMissingVersion);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrEvidenceVersionMissing
+      );
     });
 
     it("rejects missing backend", () => {
@@ -98,7 +103,9 @@ describe("segment", () => {
       e.backend = "";
 
       const segment = new LinkBuilder("p", "m").build().segmentify();
-      expect(() => segment.addEvidence(e)).toThrowError(ErrMissingBackend);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrEvidenceBackendMissing
+      );
     });
 
     it("rejects missing provider", () => {
@@ -106,7 +113,9 @@ describe("segment", () => {
       e.provider = "";
 
       const segment = new LinkBuilder("p", "m").build().segmentify();
-      expect(() => segment.addEvidence(e)).toThrowError(ErrMissingProvider);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrEvidenceProviderMissing
+      );
     });
 
     it("rejects missing proof", () => {
@@ -114,14 +123,18 @@ describe("segment", () => {
       e.proof = new Uint8Array(0);
 
       const segment = new LinkBuilder("p", "m").build().segmentify();
-      expect(() => segment.addEvidence(e)).toThrowError(ErrMissingProof);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrEvidenceProofMissing
+      );
     });
 
     it("rejects duplicate evidence", () => {
       const e = createEvidence();
       const segment = new LinkBuilder("p", "m").build().segmentify();
       segment.addEvidence(e);
-      expect(() => segment.addEvidence(e)).toThrowError(ErrDuplicateEvidence);
+      expect(() => segment.addEvidence(e)).toThrowError(
+        errors.ErrDuplicateEvidence
+      );
     });
 
     it("gets valid evidence", () => {
@@ -156,6 +169,40 @@ describe("segment", () => {
       segment.addEvidence(e);
 
       expect(segment.findEvidences("ethereum")).toHaveLength(0);
+    });
+  });
+
+  describe("validate", () => {
+    it("link hash mismatch", () => {
+      const link = new stratumn.chainscript.Link();
+      link.version = "1.0.0";
+      link.meta = new stratumn.chainscript.LinkMeta();
+      link.meta.action = "init";
+
+      const pbSegment = new stratumn.chainscript.Segment();
+      pbSegment.link = link;
+
+      const segment = new Segment(pbSegment);
+
+      // Mutate the underlying link.
+      link.meta.action = "override";
+
+      expect(() => segment.validate(null)).toThrowError(
+        errors.ErrLinkHashMismatch
+      );
+    });
+
+    it("invalid link", () => {
+      const link = new stratumn.chainscript.Link();
+      link.version = "1.0.0";
+
+      const pbSegment = new stratumn.chainscript.Segment();
+      pbSegment.link = link;
+
+      const segment = new Segment(pbSegment);
+      expect(() => segment.validate(null)).toThrowError(
+        errors.ErrLinkMetaMissing
+      );
     });
   });
 });
