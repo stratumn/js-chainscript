@@ -283,7 +283,7 @@ describe("link", () => {
           .build();
 
         const keyBytes = new sig.SigningPrivateKey({
-          algo: sig.SIGNING_ALGO_RSA.name
+          algo: sig.SIGNING_ALGO_ED25519.name
         }).export();
 
         link.sign(keyBytes, "");

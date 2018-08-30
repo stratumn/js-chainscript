@@ -13,16 +13,16 @@
 import { readFile, writeFile } from "fs";
 import { EvidencesTest } from "./evidences";
 import { ReferencesTest } from "./references";
+import { SignaturesTest } from "./signatures";
 import { SimpleSegmentTest } from "./simple_segment";
 import { ITestCase } from "./test_case";
-
-// class SignaturesTest implements ITestCase {}
 
 /** TestCases to run. */
 const TestCases = new Array<ITestCase>(
   new SimpleSegmentTest(),
   new ReferencesTest(),
-  new EvidencesTest()
+  new EvidencesTest(),
+  new SignaturesTest()
 );
 
 /**
@@ -89,6 +89,9 @@ function validate(path: string): void {
           break;
         case EvidencesTest.id:
           test = new EvidencesTest();
+          break;
+        case SignaturesTest.id:
+          test = new SignaturesTest();
           break;
         default:
           console.log(`Unknown test case: ${t.id}`);
