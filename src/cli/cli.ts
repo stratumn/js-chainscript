@@ -11,17 +11,18 @@
 /* tslint:disable:no-console */
 
 import { readFile, writeFile } from "fs";
+import { EvidencesTest } from "./evidences";
 import { ReferencesTest } from "./references";
 import { SimpleSegmentTest } from "./simple_segment";
 import { ITestCase } from "./test_case";
 
-// class EvidencesTest implements ITestCase {}
 // class SignaturesTest implements ITestCase {}
 
 /** TestCases to run. */
 const TestCases = new Array<ITestCase>(
   new SimpleSegmentTest(),
-  new ReferencesTest()
+  new ReferencesTest(),
+  new EvidencesTest()
 );
 
 /**
@@ -85,6 +86,9 @@ function validate(path: string): void {
           break;
         case ReferencesTest.id:
           test = new ReferencesTest();
+          break;
+        case EvidencesTest.id:
+          test = new EvidencesTest();
           break;
         default:
           console.log(`Unknown test case: ${t.id}`);

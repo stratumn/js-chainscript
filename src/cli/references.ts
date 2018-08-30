@@ -1,8 +1,8 @@
 import * as b64 from "base64-js";
 import { LinkBuilder } from "../link_builder";
+import { LinkReference } from "../ref";
 import { deserialize } from "../segment";
 import { ITestCase } from "./test_case";
-import { LinkReference } from "../ref";
 
 /**
  * Test a segment with references.
