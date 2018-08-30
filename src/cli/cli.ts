@@ -11,15 +11,18 @@
 /* tslint:disable:no-console */
 
 import { readFile, writeFile } from "fs";
+import { ReferencesTest } from "./references";
 import { SimpleSegmentTest } from "./simple_segment";
 import { ITestCase } from "./test_case";
 
-// class ReferencesTest implements ITestCase {}
 // class EvidencesTest implements ITestCase {}
 // class SignaturesTest implements ITestCase {}
 
 /** TestCases to run. */
-const TestCases = new Array<ITestCase>(new SimpleSegmentTest());
+const TestCases = new Array<ITestCase>(
+  new SimpleSegmentTest(),
+  new ReferencesTest()
+);
 
 /**
  * Execute commands to produce or validate chainscript data.
@@ -79,6 +82,9 @@ function validate(path: string): void {
       switch (t.id) {
         case SimpleSegmentTest.id:
           test = new SimpleSegmentTest();
+          break;
+        case ReferencesTest.id:
+          test = new ReferencesTest();
           break;
         default:
           console.log(`Unknown test case: ${t.id}`);
