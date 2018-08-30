@@ -3,6 +3,7 @@ import * as b64 from "base64-js";
 import { parse, stringify } from "canonicaljson";
 import sha256 from "fast-sha256";
 import { search } from "jmespath";
+import { Base64 } from "js-base64";
 import * as constants from "./const";
 import * as errors from "./errors";
 import { Process } from "./process";
@@ -73,7 +74,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse(atob(b64.fromByteArray(linkData)));
+        return parse(Base64.atob(b64.fromByteArray(linkData)));
       default:
         throw errors.ErrLinkVersionUnknown;
     }
@@ -121,7 +122,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse(atob(b64.fromByteArray(linkMetadata)));
+        return parse(Base64.atob(b64.fromByteArray(linkMetadata)));
       default:
         throw errors.ErrLinkVersionUnknown;
     }
@@ -218,7 +219,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        this.link.data = b64.toByteArray(btoa(stringify(data)));
+        this.link.data = b64.toByteArray(Base64.btoa(stringify(data)));
         return;
       default:
         throw errors.ErrLinkVersionUnknown;
@@ -238,7 +239,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        this.link.meta.data = b64.toByteArray(btoa(stringify(data)));
+        this.link.meta.data = b64.toByteArray(Base64.btoa(stringify(data)));
         return;
       default:
         throw errors.ErrLinkVersionUnknown;
@@ -260,7 +261,7 @@ export class Link {
     });
 
     const toSign = this.signedBytes(constants.SIGNATURE_VERSION, payloadPath);
-    const signature = privateKey.sign(atob(b64.fromByteArray(toSign)));
+    const signature = privateKey.sign(Base64.atob(b64.fromByteArray(toSign)));
 
     const s = new stratumn.chainscript.Signature();
     s.version = constants.SIGNATURE_VERSION;
@@ -336,7 +337,7 @@ export class Link {
   /**
    * Validate checks for errors in a link.
    */
-  public validate(getSegment: GetSegmentFunc): void {
+  public validate(getSegment: GetSegmentFunc | null): void {
     if (!this.link.version) {
       throw errors.ErrLinkVersionMissing;
     }

@@ -132,7 +132,7 @@ export class Segment {
   /**
    * Validate checks for errors in a segment.
    */
-  public validate(getSegment: GetSegmentFunc): void {
+  public validate(getSegment: GetSegmentFunc | null): void {
     if (!this.pbSegment.meta) {
       throw errors.ErrSegmentMetaMissing;
     }
