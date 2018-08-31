@@ -1,5 +1,6 @@
 import { sig } from "@stratumn/js-crypto";
 import * as b64 from "base64-js";
+import { Base64 } from "js-base64";
 import * as constants from "./const";
 import * as errors from "./errors";
 import { Link } from "./link";
@@ -70,7 +71,7 @@ export class Signature {
       case constants.SIGNATURE_VERSION_1_0_0:
         const signed = link.signedBytes(this.version(), this.payloadPath());
         const publicKey = new sig.SigningPublicKey({
-          pemPublicKey: atob(b64.fromByteArray(this.publicKey()))
+          pemPublicKey: Base64.atob(b64.fromByteArray(this.publicKey()))
         });
 
         const valid = publicKey.verify({

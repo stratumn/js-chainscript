@@ -261,7 +261,7 @@ describe("link", () => {
 
         const serialized = link.serialize();
         const link2 = deserialize(serialized);
-        link2.validate(null);
+        link2.validate();
 
         expect(link2.hash()).toEqual(link.hash());
 
@@ -283,7 +283,7 @@ describe("link", () => {
           .build();
 
         const keyBytes = new sig.SigningPrivateKey({
-          algo: sig.SIGNING_ALGO_RSA.name
+          algo: sig.SIGNING_ALGO_ED25519.name
         }).export();
 
         link.sign(keyBytes, "");
@@ -291,7 +291,7 @@ describe("link", () => {
 
         const serialized = link.serialize();
         const link2 = deserialize(serialized);
-        link2.validate(null);
+        link2.validate();
 
         expect(link2.hash()).toEqual(link.hash());
 
@@ -396,16 +396,14 @@ describe("link", () => {
       signatures[0].validate(link);
       signatures[1].validate(link);
 
-      link.validate(null);
+      link.validate();
     });
   });
 
   describe("validate", () => {
     it("rejects missing version", () => {
       const link = new Link(new stratumn.chainscript.Link());
-      expect(() => link.validate(null)).toThrowError(
-        errors.ErrLinkVersionMissing
-      );
+      expect(() => link.validate()).toThrowError(errors.ErrLinkVersionMissing);
     });
 
     it("rejects missing meta", () => {
@@ -413,7 +411,7 @@ describe("link", () => {
       pb.version = "1.0.0";
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(errors.ErrLinkMetaMissing);
+      expect(() => link.validate()).toThrowError(errors.ErrLinkMetaMissing);
     });
 
     it("rejects missing map id", () => {
@@ -424,9 +422,7 @@ describe("link", () => {
       pb.meta.process.name = "p";
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(
-        errors.ErrLinkMapIdMissing
-      );
+      expect(() => link.validate()).toThrowError(errors.ErrLinkMapIdMissing);
     });
 
     it("rejects missing process", () => {
@@ -436,9 +432,7 @@ describe("link", () => {
       pb.meta.mapId = "m";
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(
-        errors.ErrLinkProcessMissing
-      );
+      expect(() => link.validate()).toThrowError(errors.ErrLinkProcessMissing);
     });
 
     it("rejects incompatible clients", () => {
@@ -451,9 +445,7 @@ describe("link", () => {
       pb.meta.process.name = "p";
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(
-        errors.ErrLinkClientIdUnkown
-      );
+      expect(() => link.validate()).toThrowError(errors.ErrLinkClientIdUnkown);
     });
 
     it("rejects invalid reference", () => {
@@ -468,9 +460,7 @@ describe("link", () => {
       pb.meta.refs.push(new stratumn.chainscript.LinkReference());
 
       const link = new Link(pb);
-      expect(() => link.validate(null)).toThrowError(
-        errors.ErrLinkProcessMissing
-      );
+      expect(() => link.validate()).toThrowError(errors.ErrLinkProcessMissing);
     });
 
     it("rejects missing reference", () => {
