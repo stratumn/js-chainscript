@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/stratumn/js-chainscript#readme",
   "dependencies": {
-    "@stratumn/js-crypto": "0.0.10",
+    "@stratumn/js-crypto": "0.1.0",
     "@types/base64-js": "^1.2.5",
     "@types/jmespath": "^0.15.0",
     "@types/js-base64": "^2.3.1",
