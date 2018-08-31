@@ -1,10 +1,11 @@
 # Expose the compatibility test CLI.
 # The CLI offers the following features:
-#   * Generate test data: docker run --mount type=bind,source="$(pwd)"/samples,target=/chainscript/samples stratumn/js-chainscript:latest generate ./samples/js-samples.json
-#   * Validate test data: docker run --mount type=bind,source="$(pwd)"/samples,target=/chainscript/samples stratumn/js-chainscript:latest validate ./samples/go-samples.json
+#   * Generate test data: docker run --mount type=bind,source="$(pwd)"/samples,target=/samples stratumn/js-chainscript:latest generate ./samples/js-samples.json
+#   * Validate test data: docker run --mount type=bind,source="$(pwd)"/samples,target=/samples stratumn/js-chainscript:latest validate ./samples/go-samples.json
 
 FROM node:alpine
 
+RUN mkdir /samples
 RUN mkdir /chainscript
 ADD . /chainscript
 
