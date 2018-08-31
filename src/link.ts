@@ -275,13 +275,13 @@ export class Link {
     });
 
     const toSign = this.signedBytes(constants.SIGNATURE_VERSION, payloadPath);
-    const signature = privateKey.sign(Base64.atob(b64.fromByteArray(toSign)));
+    const signature = privateKey.sign(toSign);
 
     const s = new stratumn.chainscript.Signature();
     s.version = constants.SIGNATURE_VERSION;
     s.payloadPath = payloadPath || "[version,data,meta]";
-    s.publicKey = b64.toByteArray(signature.public_key);
-    s.signature = b64.toByteArray(signature.signature);
+    s.publicKey = signature.public_key;
+    s.signature = signature.signature;
 
     this.link.signatures.push(s);
   }

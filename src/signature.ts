@@ -89,8 +89,8 @@ export class Signature {
         });
 
         const valid = publicKey.verify({
-          message: b64.fromByteArray(signed),
-          signature: b64.fromByteArray(this.signature())
+          message: signed,
+          signature: this.signature()
         });
 
         if (!valid) {
