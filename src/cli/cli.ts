@@ -53,7 +53,7 @@ function generate(path: string): void {
   console.log(`Saving encoded segments to ${path}...`);
   writeFile(path, JSON.stringify(results), err => {
     if (err) {
-      console.log(err);
+      console.error(err);
     } else {
       console.log("Saved.");
     }
