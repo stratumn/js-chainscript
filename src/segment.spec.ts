@@ -61,7 +61,7 @@ describe("segment", () => {
 
       const serialized = segment.serialize();
       const segment2 = deserialize(serialized);
-      segment2.validate(null);
+      segment2.validate();
 
       expect(segment2.link().action()).toEqual("init");
       expect(segment2.link().priority()).toEqual(42);
@@ -187,9 +187,7 @@ describe("segment", () => {
       // Mutate the underlying link.
       link.meta.action = "override";
 
-      expect(() => segment.validate(null)).toThrowError(
-        errors.ErrLinkHashMismatch
-      );
+      expect(() => segment.validate()).toThrowError(errors.ErrLinkHashMismatch);
     });
 
     it("invalid link", () => {
@@ -200,9 +198,7 @@ describe("segment", () => {
       pbSegment.link = link;
 
       const segment = new Segment(pbSegment);
-      expect(() => segment.validate(null)).toThrowError(
-        errors.ErrLinkMetaMissing
-      );
+      expect(() => segment.validate()).toThrowError(errors.ErrLinkMetaMissing);
     });
   });
 });

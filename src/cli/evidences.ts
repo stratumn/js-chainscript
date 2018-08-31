@@ -32,7 +32,7 @@ export class EvidencesTest implements ITestCase {
 
   public validate(encodedSegment: string): void {
     const segment = deserialize(b64.toByteArray(encodedSegment));
-    segment.validate(null);
+    segment.validate();
 
     if (segment.evidences().length !== 2) {
       throw new Error(`Invalid evidences count: ${segment.evidences().length}`);

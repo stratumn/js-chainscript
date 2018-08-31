@@ -337,7 +337,7 @@ export class Link {
   /**
    * Validate checks for errors in a link.
    */
-  public validate(getSegment: GetSegmentFunc | null): void {
+  public validate(getSegment?: GetSegmentFunc): void {
     if (!this.link.version) {
       throw errors.ErrLinkVersionMissing;
     }

@@ -28,7 +28,7 @@ export class ReferencesTest implements ITestCase {
 
   public validate(encodedSegment: string): void {
     const segment = deserialize(b64.toByteArray(encodedSegment));
-    segment.validate(null);
+    segment.validate();
 
     const link = segment.link();
     const refs = link.refs();

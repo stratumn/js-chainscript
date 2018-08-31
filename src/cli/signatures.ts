@@ -34,7 +34,7 @@ export class SignaturesTest implements ITestCase {
 
   public validate(encodedSegment: string): void {
     const segment = deserialize(b64.toByteArray(encodedSegment));
-    segment.validate(null);
+    segment.validate();
 
     const signatures = segment.link().signatures();
     if (signatures.length !== 2) {
