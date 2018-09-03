@@ -11,6 +11,6 @@ ADD . /chainscript
 
 WORKDIR /chainscript
 RUN npm i
-RUN npm run build
+RUN npm run prepare
 
 ENTRYPOINT [ "node", "./lib/cli/cli.js" ]
