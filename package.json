@@ -1,6 +1,6 @@
 {
-  "name": "js-chainscript",
-  "version": "1.0.0",
+  "name": "@stratumn/js-chainscript",
+  "version": "1.0.0-rc1",
   "description": "Official JavaScript implementation of https://github.com/stratumn/chainscript.",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
