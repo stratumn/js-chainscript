@@ -12,6 +12,7 @@
     "test": "jest",
     "testdata:generate": "ts-node --files ./src/cli/cli.ts generate",
     "testdata:validate": "ts-node --files ./src/cli/cli.ts validate",
+    "update_chainscript": "git subtree pull --prefix proto git@github.com:stratumn/chainscript.git master --squash",
     "protobuf": "node_modules/.bin/pbjs -t static-module -w commonjs -o src/proto/chainscript_pb.js proto/chainscript.proto && node_modules/.bin/pbts -o src/proto/chainscript_pb.d.ts src/proto/chainscript_pb.js"
   },
   "files": [
