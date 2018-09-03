@@ -52,6 +52,7 @@ function run(action: string, path: string): void {
       return validate(path);
     default:
       console.log(`Unknown action ${action}`);
+      process.exit(1);
   }
 }
 
@@ -68,6 +69,7 @@ function generate(path: string): void {
   writeFile(path, JSON.stringify(results), err => {
     if (err) {
       console.error(err);
+      process.exit(1);
     } else {
       console.log("Saved.");
     }
@@ -83,13 +85,15 @@ function validate(path: string): void {
   readFile(path, (err, data) => {
     if (err) {
       console.log(err);
-      return;
+      process.exit(1);
     }
 
     const testData = JSON.parse(data.toString()) as Array<{
       id: string;
       data: string;
     }>;
+
+    let failed = false;
 
     testData.map(t => {
       let test: ITestCase;
@@ -109,6 +113,7 @@ function validate(path: string): void {
           break;
         default:
           console.log(`Unknown test case: ${t.id}`);
+          failed = true;
           return;
       }
 
@@ -117,8 +122,13 @@ function validate(path: string): void {
         console.log(`[${t.id}] SUCCESS`);
       } catch (err) {
         console.log(`[${t.id}] FAILED: ${err}`);
+        failed = true;
       }
     });
+
+    if (failed) {
+      process.exit(1);
+    }
   });
 }
 
