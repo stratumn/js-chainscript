@@ -15,17 +15,19 @@
 import * as constants from "./const";
 import * as errors from "./errors";
 import { Evidence } from "./evidence";
-import { deserialize as deserializeLink, Link } from "./link";
+import { deserialize as deserializeLink,  fromObject as fromLinkObject, Link } from "./link";
 import { LinkBuilder } from "./link_builder";
 import { Process } from "./process";
 import { LinkReference } from "./ref";
-import { deserialize as deserializeSegment, Segment } from "./segment";
+import { deserialize as deserializeSegment, fromObject as fromSegmentObject, Segment } from "./segment";
 import { Signature } from "./signature";
 
 export {
   constants,
   deserializeLink,
   deserializeSegment,
+  fromLinkObject,
+  fromSegmentObject,
   errors,
   Evidence,
   Link,
