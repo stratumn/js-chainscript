@@ -35,6 +35,14 @@ export function deserialize(segmentBytes: Uint8Array): Segment {
 }
 
 /**
+ * Convert an plain object to a segment.
+ * @param segment plain object.
+ */
+export function fromObject(segment: any): Segment {
+  return new Segment(stratumn.chainscript.Segment.fromObject(segment));
+}
+
+/**
  * A segment describes an atomic step in your process.
  */
 export class Segment {
@@ -141,6 +149,14 @@ export class Segment {
    */
   public serialize(): Uint8Array {
     return stratumn.chainscript.Segment.encode(this.pbSegment).finish();
+  }
+
+  /**
+   * Convert to a plain object.
+   * @returns a plain object.
+   */
+  public toObject(): any {
+    return stratumn.chainscript.Segment.toObject(this.pbSegment);
   }
 
   /**

@@ -37,6 +37,14 @@ export function deserialize(linkBytes: Uint8Array): Link {
 }
 
 /**
+ * Convert an plain object to a link.
+ * @param link plain object.
+ */
+export function fromObject(link: any): Link {
+  return new Link(stratumn.chainscript.Link.fromObject(link));
+}
+
+/**
  * A link is the immutable part of a segment.
  * A link contains all the data that represents a process' step.
  */
@@ -346,6 +354,14 @@ export class Link {
     }
 
     return meta.tags || [];
+  }
+
+  /**
+   * Convert to a plain object.
+   * @returns a plain object.
+   */
+  public toObject(): any {
+    return stratumn.chainscript.Link.toObject(this.link);
   }
 
   /**

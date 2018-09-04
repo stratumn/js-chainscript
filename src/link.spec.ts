@@ -15,7 +15,7 @@
 import { sig } from "@stratumn/js-crypto";
 import { SIGNATURE_VERSION_1_0_0 } from "./const";
 import * as errors from "./errors";
-import { deserialize, Link } from "./link";
+import { deserialize, fromObject, Link } from "./link";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
@@ -313,6 +313,26 @@ describe("link", () => {
         link2.signatures()[0].validate(link);
         link2.signatures()[1].validate(link);
       });
+    });
+  });
+
+  describe("object conversion", () => {
+    it("converts to object", () => {
+      const link = new LinkBuilder("p1", "m1").withAction("init").build();
+      const linkObj = link.toObject();
+
+      expect(linkObj.version).toBe(link.version());
+      expect(linkObj.meta.clientId).toBe(link.clientId());
+      expect(linkObj.meta.process.name).toBe(link.process().name);
+      expect(linkObj.meta.mapId).toBe(link.mapId());
+      expect(linkObj.meta.action).toBe(link.action());
+    });
+
+    it("converts from object", () => {
+      const l1 = new LinkBuilder("p1", "m1").withAction("init").build();
+      const l2 = fromObject(l1.toObject());
+
+      expect(l2).toEqual(l1);
     });
   });
 
