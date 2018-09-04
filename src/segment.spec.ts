@@ -16,7 +16,7 @@ import * as errors from "./errors";
 import { Evidence } from "./evidence";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
-import { deserialize, Segment } from "./segment";
+import { deserialize, fromObject, Segment } from "./segment";
 
 describe("segment", () => {
   it("rejects unknown version", () => {
@@ -213,6 +213,28 @@ describe("segment", () => {
 
       const segment = new Segment(pbSegment);
       expect(() => segment.validate()).toThrowError(errors.ErrLinkMetaMissing);
+    });
+  });
+
+  describe("object conversion", () => {
+    it("converts to object", () => {
+      const segment = new LinkBuilder("p1", "m1").build().segmentify();
+      const segmentObj = segment.toObject();
+
+      expect(segmentObj.link.version).toBe(segment.link().version());
+      expect(segmentObj.link.meta.clientId).toBe(segment.link().clientId());
+      expect(segmentObj.link.meta.process.name).toBe(
+        segment.link().process().name
+      );
+      expect(segmentObj.link.meta.mapId).toBe(segment.link().mapId());
+      expect(segmentObj.meta.linkHash).toBe(segment.linkHash());
+    });
+
+    it("converts from object", () => {
+      const s1 = new LinkBuilder("p1", "m1").build().segmentify();
+      const s2 = fromObject(s1.toObject());
+
+      expect(s2).toEqual(s1);
     });
   });
 });
