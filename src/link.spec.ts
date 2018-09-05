@@ -342,6 +342,13 @@ describe("link", () => {
 
       expect(l2).toEqual(l1);
     });
+
+    it("converts base64 to bytes", () => {
+      const l1 = new LinkBuilder("p1", "m1").withData({ hello: 'world!' }).build();
+      const l2 = fromObject(l1.toObject({bytes: String}));
+
+      expect(l2.data().hello).toBe("world!");
+    })
   });
 
   describe("signed bytes", () => {
