@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { sig } from "@stratumn/js-crypto";
+import * as b64 from 'base64-js';
 import { SIGNATURE_VERSION_1_0_0 } from "./const";
 import * as errors from "./errors";
 import { deserialize, fromObject, Link } from "./link";
@@ -328,12 +329,26 @@ describe("link", () => {
       expect(linkObj.meta.action).toBe(link.action());
     });
 
+    it("converts bytes to base64", () => {
+      const link = new LinkBuilder("p1", "m1").withData({ hello: 'world!' }).build();
+      const linkObj = link.toObject({bytes: String});
+
+      expect(linkObj.data).toBe(b64.fromByteArray(link.toObject().data));
+    })
+
     it("converts from object", () => {
       const l1 = new LinkBuilder("p1", "m1").withAction("init").build();
       const l2 = fromObject(l1.toObject());
 
       expect(l2).toEqual(l1);
     });
+
+    it("converts base64 to bytes", () => {
+      const l1 = new LinkBuilder("p1", "m1").withData({ hello: 'world!' }).build();
+      const l2 = fromObject(l1.toObject({bytes: String}));
+
+      expect(l2.data().hello).toBe("world!");
+    })
   });
 
   describe("signed bytes", () => {

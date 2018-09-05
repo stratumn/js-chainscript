@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import * as b64 from "base64-js";
+import { IConversionOptions } from "protobufjs";
 import * as errors from "./errors";
 import { Evidence, fromProto as evidenceFromProto } from "./evidence";
 import { Link } from "./link";
@@ -153,10 +154,11 @@ export class Segment {
 
   /**
    * Convert to a plain object.
+   * @argument conversionOpts specify how to convert certain types
    * @returns a plain object.
    */
-  public toObject(): any {
-    return stratumn.chainscript.Segment.toObject(this.pbSegment);
+  public toObject(conversionOpts?: IConversionOptions): any {
+    return stratumn.chainscript.Segment.toObject(this.pbSegment, conversionOpts);
   }
 
   /**
