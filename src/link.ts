@@ -18,6 +18,7 @@ import { parse, stringify } from "canonicaljson";
 import sha256 from "fast-sha256";
 import { search } from "jmespath";
 import { Base64 } from "js-base64";
+import { IConversionOptions } from "protobufjs";
 import * as constants from "./const";
 import * as errors from "./errors";
 import { Process } from "./process";
@@ -358,10 +359,11 @@ export class Link {
 
   /**
    * Convert to a plain object.
+   * @argument conversionOpts specify how to convert certain types
    * @returns a plain object.
    */
-  public toObject(): any {
-    return stratumn.chainscript.Link.toObject(this.link);
+  public toObject(conversionOpts?: IConversionOptions): any {
+    return stratumn.chainscript.Link.toObject(this.link, conversionOpts);
   }
 
   /**
