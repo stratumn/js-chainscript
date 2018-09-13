@@ -31,7 +31,7 @@ export class SimpleSegmentTest implements ITestCase {
   public generate(): string {
     const segment = new LinkBuilder("test_process", "test_map")
       .withAction("init")
-      .withData({ name: "batman", age: 42 })
+      .withData({ name: "ʙᴀᴛᴍᴀɴ", age: 42 })
       .withMetadata("bruce wayne")
       .withParent(Uint8Array.from([42, 42]))
       .withPriority(42)
@@ -56,7 +56,7 @@ export class SimpleSegmentTest implements ITestCase {
     if (link.data().age !== 42) {
       throw new Error(`Invalid data: ${JSON.stringify(link.data())}`);
     }
-    if (link.data().name !== "batman") {
+    if (link.data().name !== "ʙᴀᴛᴍᴀɴ") {
       throw new Error(`Invalid data: ${JSON.stringify(link.data())}`);
     }
     if (link.mapId() !== "test_map") {
