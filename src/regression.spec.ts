@@ -40,7 +40,7 @@ describe("v1.0.0", () => {
     const s = segments["simple-segment"] as Segment;
 
     expect(s.link().version()).toBe("1.0.0");
-    expect(s.link().data().name).toBe("batman");
+    expect(s.link().data().name).toBe("ʙᴀᴛᴍᴀɴ");
     expect(s.link().data().age).toBe(42);
     expect(s.link().clientId()).toBe("github.com/stratumn/go-chainscript");
     expect(s.link().prevLinkHash()).toHaveLength(2);

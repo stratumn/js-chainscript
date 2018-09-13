@@ -78,7 +78,7 @@ describe("link", () => {
   });
 
   describe("data", () => {
-    const customData = { name: "Sponge", surname: "Bob" };
+    const customData = { name: "Sponge", surname: "Capture d’écran.png" };
 
     it("rejects missing meta", () => {
       const link = new Link(new stratumn.chainscript.Link());
