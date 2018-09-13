@@ -15,12 +15,20 @@
 import * as constants from "./const";
 import * as errors from "./errors";
 import { Evidence } from "./evidence";
-import { deserialize as deserializeLink,  fromObject as fromLinkObject, Link } from "./link";
+import {
+  deserialize as deserializeLink,
+  fromObject as fromLinkObject,
+  Link
+} from "./link";
 import { LinkBuilder } from "./link_builder";
 import { Process } from "./process";
 import { LinkReference } from "./ref";
-import { deserialize as deserializeSegment, fromObject as fromSegmentObject, Segment } from "./segment";
-import { Signature } from "./signature";
+import {
+  deserialize as deserializeSegment,
+  fromObject as fromSegmentObject,
+  Segment
+} from "./segment";
+import { sign, Signature, signLink } from "./signature";
 
 export {
   constants,
@@ -35,5 +43,7 @@ export {
   LinkReference,
   Process,
   Segment,
-  Signature
+  sign,
+  Signature,
+  signLink
 };
