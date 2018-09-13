@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { sig } from "@stratumn/js-crypto";
+import * as b64 from "base64-js";
+import { Base64 } from "js-base64";
 import * as errors from "./errors";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
-import { Signature } from "./signature";
+import { sign, Signature, signLink } from "./signature";
 
 describe("signature", () => {
   it("uses empty default values", () => {
@@ -74,5 +77,59 @@ describe("signature", () => {
         errors.ErrSignatureMissing
       );
     });
+  });
+});
+
+describe("sign", () => {
+  const key = new sig.SigningPrivateKey({
+    algo: sig.SIGNING_ALGO_ED25519.name
+  });
+  const keyBytes = key.export();
+
+  it("fails for invalid key", () => {
+    expect(() => sign(Uint8Array.from([42]), Uint8Array.from([42]))).toThrow();
+  });
+
+  it("signs random bytes", () => {
+    const toSign = Uint8Array.from([42, 24, 24, 42]);
+    const s = sign(keyBytes, toSign);
+
+    expect(s.payloadPath()).toBe("");
+
+    const publicKey = new sig.SigningPublicKey({
+      pemPublicKey: Base64.atob(b64.fromByteArray(s.publicKey()))
+    });
+
+    const valid = publicKey.verify({
+      message: toSign,
+      signature: s.signature()
+    });
+
+    expect(valid).toBe(true);
+  });
+});
+
+describe("signLink", () => {
+  const key = new sig.SigningPrivateKey({
+    algo: sig.SIGNING_ALGO_ED25519.name
+  });
+  const keyBytes = key.export();
+
+  it("can sign the whole link", () => {
+    const link = new LinkBuilder("p", "m").build();
+    const s = signLink(keyBytes, link, "");
+
+    expect(link.signatures()).toHaveLength(0);
+    expect(s.payloadPath()).toEqual("[version,data,meta]");
+    s.validate(link);
+  });
+
+  it("can sign parts of the link", () => {
+    const link = new LinkBuilder("p", "m").withAction("init").build();
+    const s = signLink(keyBytes, link, "[version,meta.action]");
+
+    expect(link.signatures()).toHaveLength(0);
+    expect(s.payloadPath()).toEqual("[version,meta.action]");
+    s.validate(link);
   });
 });

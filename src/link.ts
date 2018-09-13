@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { sig } from "@stratumn/js-crypto";
 import * as b64 from "base64-js";
 import { parse, stringify } from "canonicaljson";
 import sha256 from "fast-sha256";
@@ -25,7 +24,7 @@ import { Process } from "./process";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
 import { GetSegmentFunc, Segment } from "./segment";
-import { Signature } from "./signature";
+import { Signature, signLink } from "./signature";
 
 /**
  * Deserialize a link.
@@ -279,18 +278,13 @@ export class Link {
    * @param payloadPath link parts that should be signed.
    */
   public sign(key: Uint8Array, payloadPath: string): void {
-    const privateKey = new sig.SigningPrivateKey({
-      pemPrivateKey: key
-    });
-
-    const toSign = this.signedBytes(constants.SIGNATURE_VERSION, payloadPath);
-    const signature = privateKey.sign(toSign);
+    const signature = signLink(key, this, payloadPath);
 
     const s = new stratumn.chainscript.Signature();
-    s.version = constants.SIGNATURE_VERSION;
-    s.payloadPath = payloadPath || "[version,data,meta]";
-    s.publicKey = signature.public_key;
-    s.signature = signature.signature;
+    s.version = signature.version();
+    s.payloadPath = signature.payloadPath();
+    s.publicKey = signature.publicKey();
+    s.signature = signature.signature();
 
     this.link.signatures.push(s);
   }
