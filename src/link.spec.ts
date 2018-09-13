@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { sig } from "@stratumn/js-crypto";
-import * as b64 from 'base64-js';
+import * as b64 from "base64-js";
 import { SIGNATURE_VERSION_1_0_0 } from "./const";
 import * as errors from "./errors";
 import { deserialize, fromObject, Link } from "./link";
@@ -21,6 +21,7 @@ import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
 import { Segment } from "./segment";
+import { Signature, signLink } from "./signature";
 
 /**
  * Create a valid test link for version 1.0.0.
@@ -330,11 +331,13 @@ describe("link", () => {
     });
 
     it("converts bytes to base64", () => {
-      const link = new LinkBuilder("p1", "m1").withData({ hello: 'world!' }).build();
-      const linkObj = link.toObject({bytes: String});
+      const link = new LinkBuilder("p1", "m1")
+        .withData({ hello: "world!" })
+        .build();
+      const linkObj = link.toObject({ bytes: String });
 
       expect(linkObj.data).toBe(b64.fromByteArray(link.toObject().data));
-    })
+    });
 
     it("converts from object", () => {
       const l1 = new LinkBuilder("p1", "m1").withAction("init").build();
@@ -344,11 +347,37 @@ describe("link", () => {
     });
 
     it("converts base64 to bytes", () => {
-      const l1 = new LinkBuilder("p1", "m1").withData({ hello: 'world!' }).build();
-      const l2 = fromObject(l1.toObject({bytes: String}));
+      const l1 = new LinkBuilder("p1", "m1")
+        .withData({ hello: "world!" })
+        .build();
+      const l2 = fromObject(l1.toObject({ bytes: String }));
 
       expect(l2.data().hello).toBe("world!");
-    })
+    });
+  });
+
+  describe("addSignature", () => {
+    const key = new sig.SigningPrivateKey({
+      algo: sig.SIGNING_ALGO_ED25519.name
+    }).export();
+
+    it("rejects invalid signatures", () => {
+      const link = new LinkBuilder("p", "m").build();
+      const s = new stratumn.chainscript.Signature();
+      s.publicKey = Uint8Array.from([42]);
+      s.signature = Uint8Array.from([42]);
+
+      expect(() => link.addSignature(new Signature(s))).toThrow();
+      expect(link.signatures()).toHaveLength(0);
+    });
+
+    it("adds to signatures list", () => {
+      const link = new LinkBuilder("p", "m").build();
+      const s = signLink(key, link, "[version,meta]");
+
+      link.addSignature(s);
+      expect(link.signatures()).toHaveLength(1);
+    });
   });
 
   describe("signed bytes", () => {
