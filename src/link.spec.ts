@@ -354,6 +354,20 @@ describe("link", () => {
 
       expect(l2.data().hello).toBe("world!");
     });
+
+    it("converts prevLinkHash to uint8array", () => {
+      const prevLink = new LinkBuilder("p1", "m1").build();
+      const prevSegment = prevLink.segmentify();
+
+      const link = new LinkBuilder("p1", "m1")
+        .withParent(prevSegment.linkHash())
+        .build();
+
+      const parsedLink = fromObject(link.toObject());
+
+      expect(parsedLink.prevLinkHash()).toEqual(prevSegment.linkHash());
+      expect(parsedLink.prevLinkHash()).toEqual(prevLink.hash());
+    });
   });
 
   describe("addSignature", () => {

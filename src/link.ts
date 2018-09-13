@@ -177,7 +177,13 @@ export class Link {
       throw errors.ErrLinkMetaMissing;
     }
 
-    return meta.prevLinkHash || new Uint8Array(0);
+    if (!meta.prevLinkHash) {
+      return new Uint8Array(0);
+    }
+
+    // We re-wrap inside a Uint8Array because it might have become a Buffer if
+    // converted from a plain Javascript object.
+    return new Uint8Array(meta.prevLinkHash);
   }
 
   /**

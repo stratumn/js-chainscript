@@ -236,5 +236,12 @@ describe("segment", () => {
 
       expect(s2).toEqual(s1);
     });
+
+    it("converts link hash to uint8array", () => {
+      const segment = new LinkBuilder("p1", "m1").build().segmentify();
+      const parsedSegment = fromObject(segment.toObject());
+
+      expect(parsedSegment.linkHash()).toEqual(segment.linkHash());
+    });
   });
 });
