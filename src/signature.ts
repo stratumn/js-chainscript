@@ -55,12 +55,15 @@ export function signLink(
   link: Link,
   payloadPath: string
 ): Signature {
+  // We want to make it explicit when we're signing the whole link.
+  payloadPath = payloadPath || "[version,data,meta]";
+
   const toSign = link.signedBytes(constants.SIGNATURE_VERSION, payloadPath);
   const signature = sign(key, toSign);
 
   const s = new stratumn.chainscript.Signature();
   s.version = signature.version();
-  s.payloadPath = payloadPath || "[version,data,meta]";
+  s.payloadPath = payloadPath;
   s.publicKey = signature.publicKey();
   s.signature = signature.signature();
 
