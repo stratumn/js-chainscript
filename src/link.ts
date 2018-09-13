@@ -97,7 +97,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse(Base64.atob(b64.fromByteArray(linkData)));
+        return parse(Base64.decode(b64.fromByteArray(linkData)));
       default:
         throw errors.ErrLinkVersionUnknown;
     }
@@ -145,7 +145,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        return parse(Base64.atob(b64.fromByteArray(linkMetadata)));
+        return parse(Base64.decode(b64.fromByteArray(linkMetadata)));
       default:
         throw errors.ErrLinkVersionUnknown;
     }
@@ -242,7 +242,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        this.link.data = b64.toByteArray(Base64.btoa(stringify(data)));
+        this.link.data = b64.toByteArray(Base64.encode(stringify(data)));
         return;
       default:
         throw errors.ErrLinkVersionUnknown;
@@ -262,7 +262,7 @@ export class Link {
 
     switch (this.version()) {
       case constants.LINK_VERSION_1_0_0:
-        this.link.meta.data = b64.toByteArray(Base64.btoa(stringify(data)));
+        this.link.meta.data = b64.toByteArray(Base64.encode(stringify(data)));
         return;
       default:
         throw errors.ErrLinkVersionUnknown;
