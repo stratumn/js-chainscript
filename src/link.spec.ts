@@ -21,6 +21,7 @@ import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
 import { Segment } from "./segment";
+import { Signature, signLink } from "./signature";
 
 /**
  * Create a valid test link for version 1.0.0.
@@ -352,6 +353,30 @@ describe("link", () => {
       const l2 = fromObject(l1.toObject({ bytes: String }));
 
       expect(l2.data().hello).toBe("world!");
+    });
+  });
+
+  describe("addSignature", () => {
+    const key = new sig.SigningPrivateKey({
+      algo: sig.SIGNING_ALGO_ED25519.name
+    }).export();
+
+    it("rejects invalid signatures", () => {
+      const link = new LinkBuilder("p", "m").build();
+      const s = new stratumn.chainscript.Signature();
+      s.publicKey = Uint8Array.from([42]);
+      s.signature = Uint8Array.from([42]);
+
+      expect(() => link.addSignature(new Signature(s))).toThrow();
+      expect(link.signatures()).toHaveLength(0);
+    });
+
+    it("adds to signatures list", () => {
+      const link = new LinkBuilder("p", "m").build();
+      const s = signLink(key, link, "[version,meta]");
+
+      link.addSignature(s);
+      expect(link.signatures()).toHaveLength(1);
     });
   });
 

@@ -69,6 +69,23 @@ export class Link {
   }
 
   /**
+   * Add a signature to the link.
+   * This will validate the signature before adding it.
+   * @param signature link signature.
+   */
+  public addSignature(signature: Signature): void {
+    signature.validate(this);
+
+    const s = new stratumn.chainscript.Signature();
+    s.version = signature.version();
+    s.payloadPath = signature.payloadPath();
+    s.publicKey = signature.publicKey();
+    s.signature = signature.signature();
+
+    this.link.signatures.push(s);
+  }
+
+  /**
    * The client id allows segment receivers to figure out how the segment was
    * encoded and can be decoded.
    * @returns the link's client id.
