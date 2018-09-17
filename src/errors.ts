@@ -42,12 +42,6 @@ export const ErrLinkProcessMissing = new TypeError("link process is missing");
 export const ErrLinkVersionMissing = new TypeError("link version is missing");
 export const ErrLinkVersionUnknown = new TypeError("unknown link version");
 
-/***** Link reference errors *****/
-
-export const ErrRefNotFound = new TypeError(
-  "referenced link could not be retrieved"
-);
-
 /***** Segment errors *****/
 
 export const ErrLinkHashMismatch = new TypeError("link hash mismatch");

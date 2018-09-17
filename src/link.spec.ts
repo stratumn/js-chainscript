@@ -69,6 +69,7 @@ describe("link", () => {
     expect(() => link.action()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.clientId()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.mapId()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.outDegree()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.prevLinkHash()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.priority()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.process()).toThrowError(errors.ErrLinkMetaMissing);
@@ -555,31 +556,6 @@ describe("link", () => {
       expect(() => link.validate()).toThrowError(errors.ErrLinkProcessMissing);
     });
 
-    it("rejects missing reference", () => {
-      const pb = new stratumn.chainscript.Link();
-      pb.version = "1.0.0";
-
-      pb.meta = new stratumn.chainscript.LinkMeta();
-      pb.meta.clientId = "github.com/stratumn/go-chainscript";
-      pb.meta.mapId = "m";
-      pb.meta.process = new stratumn.chainscript.Process();
-      pb.meta.process.name = "p";
-
-      const linkRef = new stratumn.chainscript.LinkReference();
-      linkRef.process = "p";
-      linkRef.linkHash = Uint8Array.from([42]);
-      pb.meta.refs.push(linkRef);
-
-      const getSegment = (_: Uint8Array): Segment => {
-        return null;
-      };
-
-      const link = new Link(pb);
-      expect(() => link.validate(getSegment)).toThrowError(
-        errors.ErrRefNotFound
-      );
-    });
-
     it("valid references", () => {
       const link = new LinkBuilder("p1", "m1")
         .withRefs([
@@ -588,15 +564,7 @@ describe("link", () => {
         ])
         .build();
 
-      const getSegment = (linkHash: Uint8Array): Segment => {
-        if (linkHash[0] === 42) {
-          return new LinkBuilder("p1", "m1").build().segmentify();
-        }
-
-        return null;
-      };
-
-      link.validate(getSegment);
+      link.validate();
     });
   });
 });

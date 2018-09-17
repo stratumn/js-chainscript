@@ -1,6 +1,6 @@
 {
   "name": "@stratumn/js-chainscript",
-  "version": "1.0.0-rc3",
+  "version": "1.0.0-rc4",
   "description": "Official JavaScript implementation of https://github.com/stratumn/chainscript.",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
@@ -12,7 +12,7 @@
     "test": "jest",
     "testdata:generate": "ts-node --files ./src/cli/cli.ts generate",
     "testdata:validate": "ts-node --files ./src/cli/cli.ts validate",
-    "update_chainscript": "git subtree pull --prefix proto git@github.com:stratumn/chainscript.git master --squash",
+    "update_chainscript": "./update_chainscript.sh",
     "protobuf": "node_modules/.bin/pbjs -t static-module -w commonjs -o src/proto/chainscript_pb.js proto/chainscript.proto && node_modules/.bin/pbts -o src/proto/chainscript_pb.d.ts src/proto/chainscript_pb.js"
   },
   "files": [

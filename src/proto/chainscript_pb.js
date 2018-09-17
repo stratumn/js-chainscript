@@ -1260,6 +1260,7 @@ $root.stratumn = (function() {
              * @property {Uint8Array|null} [prevLinkHash] LinkMeta prevLinkHash
              * @property {number|null} [priority] LinkMeta priority
              * @property {Array.<stratumn.chainscript.ILinkReference>|null} [refs] LinkMeta refs
+             * @property {number|null} [outDegree] LinkMeta outDegree
              * @property {stratumn.chainscript.IProcess|null} [process] LinkMeta process
              * @property {string|null} [mapId] LinkMeta mapId
              * @property {string|null} [action] LinkMeta action
@@ -1316,6 +1317,14 @@ $root.stratumn = (function() {
              * @instance
              */
             LinkMeta.prototype.refs = $util.emptyArray;
+
+            /**
+             * LinkMeta outDegree.
+             * @member {number} outDegree
+             * @memberof stratumn.chainscript.LinkMeta
+             * @instance
+             */
+            LinkMeta.prototype.outDegree = 0;
 
             /**
              * LinkMeta process.
@@ -1398,6 +1407,8 @@ $root.stratumn = (function() {
                 if (message.refs != null && message.refs.length)
                     for (var i = 0; i < message.refs.length; ++i)
                         $root.stratumn.chainscript.LinkReference.encode(message.refs[i], writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
+                if (message.outDegree != null && message.hasOwnProperty("outDegree"))
+                    writer.uint32(/* id 13, wireType 0 =*/104).int32(message.outDegree);
                 if (message.process != null && message.hasOwnProperty("process"))
                     $root.stratumn.chainscript.Process.encode(message.process, writer.uint32(/* id 20, wireType 2 =*/162).fork()).ldelim();
                 if (message.mapId != null && message.hasOwnProperty("mapId"))
@@ -1458,6 +1469,9 @@ $root.stratumn = (function() {
                         if (!(message.refs && message.refs.length))
                             message.refs = [];
                         message.refs.push($root.stratumn.chainscript.LinkReference.decode(reader, reader.uint32()));
+                        break;
+                    case 13:
+                        message.outDegree = reader.int32();
                         break;
                     case 20:
                         message.process = $root.stratumn.chainscript.Process.decode(reader, reader.uint32());
@@ -1532,6 +1546,9 @@ $root.stratumn = (function() {
                             return "refs." + error;
                     }
                 }
+                if (message.outDegree != null && message.hasOwnProperty("outDegree"))
+                    if (!$util.isInteger(message.outDegree))
+                        return "outDegree: integer expected";
                 if (message.process != null && message.hasOwnProperty("process")) {
                     var error = $root.stratumn.chainscript.Process.verify(message.process);
                     if (error)
@@ -1590,6 +1607,8 @@ $root.stratumn = (function() {
                         message.refs[i] = $root.stratumn.chainscript.LinkReference.fromObject(object.refs[i]);
                     }
                 }
+                if (object.outDegree != null)
+                    message.outDegree = object.outDegree | 0;
                 if (object.process != null) {
                     if (typeof object.process !== "object")
                         throw TypeError(".stratumn.chainscript.LinkMeta.process: object expected");
@@ -1643,6 +1662,7 @@ $root.stratumn = (function() {
                             object.prevLinkHash = $util.newBuffer(object.prevLinkHash);
                     }
                     object.priority = 0;
+                    object.outDegree = 0;
                     object.process = null;
                     object.mapId = "";
                     object.action = "";
@@ -1666,6 +1686,8 @@ $root.stratumn = (function() {
                     for (var j = 0; j < message.refs.length; ++j)
                         object.refs[j] = $root.stratumn.chainscript.LinkReference.toObject(message.refs[j], options);
                 }
+                if (message.outDegree != null && message.hasOwnProperty("outDegree"))
+                    object.outDegree = message.outDegree;
                 if (message.process != null && message.hasOwnProperty("process"))
                     object.process = $root.stratumn.chainscript.Process.toObject(message.process, options);
                 if (message.mapId != null && message.hasOwnProperty("mapId"))

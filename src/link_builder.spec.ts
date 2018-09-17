@@ -45,12 +45,24 @@ describe("link builder", () => {
       const link = new LinkBuilder("p", "m").build();
       expect(link.mapId()).toEqual("m");
     });
+
+    it("sets the out degree", () => {
+      const link = new LinkBuilder("p", "m").build();
+      expect(link.outDegree()).toEqual(-1);
+    });
   });
 
   describe("action", () => {
     it("sets the link action", () => {
       const link = new LinkBuilder("p", "m").withAction("a").build();
       expect(link.action()).toEqual("a");
+    });
+  });
+
+  describe("degree", () => {
+    it("correctly sets degree", () => {
+      const link = new LinkBuilder("p", "m").withDegree(1).build();
+      expect(link.outDegree()).toEqual(1);
     });
   });
 
