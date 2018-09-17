@@ -28,7 +28,12 @@ import {
   fromObject as fromSegmentObject,
   Segment
 } from "./segment";
-import { sign, Signature, signLink } from "./signature";
+import {
+  fromObject as fromSignatureObject,
+  sign,
+  Signature,
+  signLink
+} from "./signature";
 
 export {
   constants,
@@ -36,6 +41,7 @@ export {
   deserializeSegment,
   fromLinkObject,
   fromSegmentObject,
+  fromSignatureObject,
   errors,
   Evidence,
   Link,

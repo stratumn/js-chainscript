@@ -15,10 +15,27 @@
 import { sig } from "@stratumn/js-crypto";
 import * as b64 from "base64-js";
 import { Base64 } from "js-base64";
+import { IConversionOptions } from "protobufjs";
 import * as constants from "./const";
 import * as errors from "./errors";
 import { Link } from "./link";
 import { stratumn } from "./proto/chainscript_pb";
+
+/**
+ * Convert a plain object to a signature.
+ * @param s plain object.
+ */
+export function fromObject(s: any): Signature {
+  if (typeof s.signature === "string") {
+    s.signature = b64.toByteArray(s.signature);
+  }
+
+  if (typeof s.publicKey === "string") {
+    s.publicKey = b64.toByteArray(s.publicKey);
+  }
+
+  return new Signature(s);
+}
 
 /**
  * Sign bytes with the current signature version.
@@ -116,6 +133,18 @@ export class Signature {
    */
   public signature(): Uint8Array {
     return this.s.signature || new Uint8Array(0);
+  }
+
+  /**
+   * Convert to a plain object.
+   * @argument conversionOpts specify how to convert certain types.
+   * @returns a plain object.
+   */
+  public toObject(conversionOpts?: IConversionOptions): any {
+    return stratumn.chainscript.Signature.toObject(
+      this.s as stratumn.chainscript.Signature,
+      conversionOpts
+    );
   }
 
   /**

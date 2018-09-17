@@ -18,7 +18,7 @@ import { Base64 } from "js-base64";
 import * as errors from "./errors";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
-import { sign, Signature, signLink } from "./signature";
+import { fromObject, sign, Signature, signLink } from "./signature";
 
 describe("signature", () => {
   it("uses empty default values", () => {
@@ -131,5 +131,29 @@ describe("signLink", () => {
     expect(link.signatures()).toHaveLength(0);
     expect(s.payloadPath()).toEqual("[version,meta.action]");
     s.validate(link);
+  });
+});
+
+describe("fromObject", () => {
+  const key = new sig.SigningPrivateKey({
+    algo: sig.SIGNING_ALGO_ED25519.name
+  });
+  const keyBytes = key.export();
+
+  it("converts from object", () => {
+    const l = new LinkBuilder("p1", "m1").build();
+    const s1 = signLink(keyBytes, l, "[version,meta.action]");
+    const s2 = fromObject(s1.toObject());
+
+    expect(s2).toEqual(s1);
+  });
+
+  it("converts base64 to bytes", () => {
+    const l = new LinkBuilder("p1", "m1").build();
+    const s1 = signLink(keyBytes, l, "");
+    const s2 = fromObject(s1.toObject({ bytes: String }));
+
+    expect(s2.signature()).toEqual(s1.signature());
+    expect(s2.publicKey()).toEqual(s1.publicKey());
   });
 });
