@@ -23,7 +23,7 @@ import * as errors from "./errors";
 import { Process } from "./process";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
-import { GetSegmentFunc, Segment } from "./segment";
+import { Segment } from "./segment";
 import { Signature, signLink } from "./signature";
 
 /**
@@ -401,7 +401,7 @@ export class Link {
   /**
    * Validate checks for errors in a link.
    */
-  public validate(getSegment?: GetSegmentFunc): void {
+  public validate(): void {
     if (!this.link.version) {
       throw errors.ErrLinkVersionMissing;
     }
@@ -428,14 +428,6 @@ export class Link {
 
       if (!r.linkHash || r.linkHash.length === 0) {
         throw errors.ErrLinkHashMissing;
-      }
-
-      // We only check the referenced segment if it's in the same process.
-      if (r.process === this.process().name && getSegment) {
-        const seg = getSegment(r.linkHash);
-        if (!seg) {
-          throw errors.ErrRefNotFound;
-        }
       }
     });
 
