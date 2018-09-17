@@ -32,6 +32,7 @@ export class SimpleSegmentTest implements ITestCase {
     const segment = new LinkBuilder("test_process", "test_map")
       .withAction("init")
       .withData({ name: "ʙᴀᴛᴍᴀɴ", age: 42 })
+      .withDegree(3)
       .withMetadata("bruce wayne")
       .withParent(Uint8Array.from([42, 42]))
       .withPriority(42)
@@ -58,6 +59,9 @@ export class SimpleSegmentTest implements ITestCase {
     }
     if (link.data().name !== "ʙᴀᴛᴍᴀɴ") {
       throw new Error(`Invalid data: ${JSON.stringify(link.data())}`);
+    }
+    if (link.outDegree() !== 3) {
+      throw new Error(`Invalid degree: ${link.outDegree()}`);
     }
     if (link.mapId() !== "test_map") {
       throw new Error(`Invalid map id: ${link.mapId()}`);

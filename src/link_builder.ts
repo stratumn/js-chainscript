@@ -39,6 +39,13 @@ export interface ILinkBuilder {
   withData(data: any): ILinkBuilder;
 
   /**
+   * Set the maximum number of children a link is allowed to have.
+   * By default this is set to -1 to allow any number of children.
+   * @param d degree of the link.
+   */
+  withDegree(d: number): ILinkBuilder;
+
+  /**
    * Set the link metadata (custom object containing business logic details).
    * @param data link metadata.
    */
@@ -114,6 +121,7 @@ export class LinkBuilder implements ILinkBuilder {
     this.link.meta = new stratumn.chainscript.LinkMeta();
     this.link.meta.clientId = constants.ClientId;
     this.link.meta.mapId = mapId;
+    this.link.meta.outDegree = -1;
     this.link.meta.process = new stratumn.chainscript.Process();
     this.link.meta.process.name = process;
   }
@@ -125,6 +133,11 @@ export class LinkBuilder implements ILinkBuilder {
 
   public withData(data: any): ILinkBuilder {
     this.linkData = data;
+    return this;
+  }
+
+  public withDegree(d: number): ILinkBuilder {
+    (this.link.meta as stratumn.chainscript.LinkMeta).outDegree = d;
     return this;
   }
 
