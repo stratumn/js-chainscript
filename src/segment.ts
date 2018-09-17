@@ -20,12 +20,6 @@ import { Link } from "./link";
 import { stratumn } from "./proto/chainscript_pb";
 
 /**
- * GetSegmentFunc fetches segments from a store.
- * It can be used to validate that references exist.
- */
-export type GetSegmentFunc = (linkHash: Uint8Array) => Segment;
-
-/**
  * Deserialize a segment.
  * @param segmentBytes encoded bytes.
  * @returns the deserialized segment.
@@ -158,13 +152,16 @@ export class Segment {
    * @returns a plain object.
    */
   public toObject(conversionOpts?: IConversionOptions): any {
-    return stratumn.chainscript.Segment.toObject(this.pbSegment, conversionOpts);
+    return stratumn.chainscript.Segment.toObject(
+      this.pbSegment,
+      conversionOpts
+    );
   }
 
   /**
    * Validate checks for errors in a segment.
    */
-  public validate(getSegment?: GetSegmentFunc): void {
+  public validate(): void {
     if (!this.pbSegment.meta) {
       throw errors.ErrSegmentMetaMissing;
     }
@@ -180,6 +177,6 @@ export class Segment {
       throw errors.ErrLinkHashMismatch;
     }
 
-    this.link().validate(getSegment);
+    this.link().validate();
   }
 }
