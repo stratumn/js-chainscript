@@ -168,6 +168,21 @@ export class Link {
   }
 
   /**
+   * Maximum number of children a link is allowed to have.
+   * This is set to -1 if the link is allowed to have as many children as it
+   * wants.
+   * @returns the maximum number of children allowed.
+   */
+  public outDegree(): number {
+    const meta = this.link.meta;
+    if (!meta) {
+      throw errors.ErrLinkMetaMissing;
+    }
+
+    return meta.outDegree || 0;
+  }
+
+  /**
    * A link can have a parent, referenced by its link hash.
    * @returns the parent link hash.
    */

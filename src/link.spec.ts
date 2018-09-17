@@ -69,6 +69,7 @@ describe("link", () => {
     expect(() => link.action()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.clientId()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.mapId()).toThrowError(errors.ErrLinkMetaMissing);
+    expect(() => link.outDegree()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.prevLinkHash()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.priority()).toThrowError(errors.ErrLinkMetaMissing);
     expect(() => link.process()).toThrowError(errors.ErrLinkMetaMissing);
