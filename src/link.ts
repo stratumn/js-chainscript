@@ -37,7 +37,7 @@ export function deserialize(linkBytes: Uint8Array): Link {
 }
 
 /**
- * Convert an plain object to a link.
+ * Convert a plain object to a link.
  * @param link plain object.
  */
 export function fromObject(link: any): Link {
@@ -376,7 +376,7 @@ export class Link {
 
   /**
    * Convert to a plain object.
-   * @argument conversionOpts specify how to convert certain types
+   * @argument conversionOpts specify how to convert certain types.
    * @returns a plain object.
    */
   public toObject(conversionOpts?: IConversionOptions): any {
