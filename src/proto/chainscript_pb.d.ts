@@ -524,6 +524,9 @@ export namespace stratumn {
             /** LinkMeta refs */
             refs?: (stratumn.chainscript.ILinkReference[]|null);
 
+            /** LinkMeta outDegree */
+            outDegree?: (number|null);
+
             /** LinkMeta process */
             process?: (stratumn.chainscript.IProcess|null);
 
@@ -563,6 +566,9 @@ export namespace stratumn {
 
             /** LinkMeta refs. */
             public refs: stratumn.chainscript.ILinkReference[];
+
+            /** LinkMeta outDegree. */
+            public outDegree: number;
 
             /** LinkMeta process. */
             public process?: (stratumn.chainscript.IProcess|null);
