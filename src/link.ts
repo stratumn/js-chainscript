@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as b64 from "base64-js";
 import { parse, stringify } from "@stratumn/canonicaljson";
+import * as b64 from "base64-js";
 import sha256 from "fast-sha256";
 import { search } from "jmespath";
 import { Base64 } from "js-base64";

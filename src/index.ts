@@ -14,7 +14,7 @@
 
 import * as constants from "./const";
 import * as errors from "./errors";
-import { Evidence } from "./evidence";
+import { Evidence, fromObject as fromEvidenceObject } from "./evidence";
 import {
   deserialize as deserializeLink,
   fromObject as fromLinkObject,
@@ -39,6 +39,7 @@ export {
   constants,
   deserializeLink,
   deserializeSegment,
+  fromEvidenceObject,
   fromLinkObject,
   fromSegmentObject,
   fromSignatureObject,
