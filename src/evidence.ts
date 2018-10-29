@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as b64 from "base64-js";
+import { IConversionOptions } from "protobufjs";
 import * as errors from "./errors";
 import { stratumn } from "./proto/chainscript_pb";
 
@@ -26,6 +28,23 @@ export function fromProto(e: stratumn.chainscript.IEvidence): Evidence {
     e.provider || "",
     e.proof || new Uint8Array(0)
   );
+}
+
+/**
+ * Convert a plain object to an evidence.
+ * @param e plain object.
+ */
+export function fromObject(e: any): Evidence {
+  if (typeof e.proof === "string") {
+    return new Evidence(
+      e.version,
+      e.backend,
+      e.provider,
+      b64.toByteArray(e.proof)
+    );
+  }
+
+  return new Evidence(e.version, e.backend, e.provider, e.proof);
 }
 
 /**
@@ -79,5 +98,28 @@ export class Evidence {
     if (!this.proof || this.proof.length === 0) {
       throw errors.ErrEvidenceProofMissing;
     }
+  }
+
+  /**
+   * Convert to a plain object.
+   * @argument conversionOpts specify how to convert certain types.
+   * @returns a plain object.
+   */
+  public toObject(conversionOpts?: IConversionOptions): any {
+    if (conversionOpts && conversionOpts.bytes === String) {
+      return {
+        backend: this.backend,
+        proof: b64.fromByteArray(this.proof),
+        provider: this.provider,
+        version: this.version
+      };
+    }
+
+    return {
+      backend: this.backend,
+      proof: this.proof,
+      provider: this.provider,
+      version: this.version
+    };
   }
 }

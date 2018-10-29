@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as errors from "./errors";
-import { Evidence, fromProto } from "./evidence";
+import { Evidence, fromObject, fromProto } from "./evidence";
 import { stratumn } from "./proto/chainscript_pb";
 
 describe("evidence", () => {
@@ -61,5 +61,43 @@ describe("evidence", () => {
     expect(() => fromProto(new stratumn.chainscript.Evidence())).toThrowError(
       errors.ErrEvidenceVersionMissing
     );
+  });
+
+  it("converts bytes to base64", () => {
+    const e = new Evidence(
+      "1.0.0",
+      "btc",
+      "mainnet",
+      Uint8Array.from([42, 24])
+    );
+
+    const plainObj = e.toObject({ bytes: String });
+    expect(plainObj).toEqual({
+      backend: "btc",
+      proof: "Khg=",
+      provider: "mainnet",
+      version: "1.0.0"
+    });
+
+    expect(fromObject(plainObj)).toEqual(e);
+  });
+
+  it("converts to object and keeps bytes", () => {
+    const e = new Evidence(
+      "1.0.0",
+      "btc",
+      "mainnet",
+      Uint8Array.from([42, 24])
+    );
+
+    const plainObj = e.toObject();
+    expect(plainObj).toEqual({
+      backend: "btc",
+      proof: Uint8Array.from([42, 24]),
+      provider: "mainnet",
+      version: "1.0.0"
+    });
+
+    expect(fromObject(plainObj)).toEqual(e);
   });
 });
