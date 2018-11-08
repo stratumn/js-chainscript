@@ -14,6 +14,7 @@
 
 import { parse, stringify } from "@stratumn/canonicaljson";
 import * as b64 from "base64-js";
+import { Buffer } from "buffer";
 import sha256 from "fast-sha256";
 import { search } from "jmespath";
 import { Base64 } from "js-base64";
@@ -351,10 +352,7 @@ export class Link {
 
         const payloadData = search(this.link.toJSON(), payloadPath);
         const jsonData = stringify(payloadData) as string;
-        const payloadBytes = new Uint8Array(jsonData.length);
-        for (let i = 0; i < jsonData.length; i++) {
-          payloadBytes[i] = jsonData.charCodeAt(i);
-        }
+        const payloadBytes = Buffer.from(jsonData, "utf8");
 
         return sha256(payloadBytes);
       default:

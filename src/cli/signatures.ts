@@ -37,7 +37,9 @@ export class SignaturesTest implements ITestCase {
       algo: sig.SIGNING_ALGO_RSA.name
     });
 
-    const link = new LinkBuilder("test_process", "test_map").build();
+    const link = new LinkBuilder("test_process", "test_map")
+      .withAction("ʙᴀᴛᴍᴀɴ")
+      .build();
     link.sign(ed25519Key.export(), "");
     link.sign(rsaKey.export(), "[version,meta.mapId]");
 

@@ -3,6 +3,20 @@
 Each version of the ChainScript implementation makes specific serialization
 choices. Those choices are detailed in this document.
 
+## 1.0.3
+
+Fixed an issue with string encoding and signatures.
+If your data contained non-ASCII characters the signatures generated would not
+be accepted by other implementations of the Chainscript specification.
+
+## 1.0.2
+
+Added helper methods to transform evidences to plain javascript objects.
+
+## 1.0.1
+
+Updated canonical JSON dependency (a small error handling bugfix).
+
 ## 1.0.0
 
 - Dependencies:
