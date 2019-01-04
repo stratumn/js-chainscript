@@ -14,43 +14,29 @@
 
 import * as constants from "./const";
 import * as errors from "./errors";
-import { Evidence, fromObject as fromEvidenceObject } from "./evidence";
-import {
+export {
+  deserialize as deserializeEvidence,
+  Evidence,
+  fromObject as fromEvidenceObject
+} from "./evidence";
+export {
   deserialize as deserializeLink,
   fromObject as fromLinkObject,
   Link
 } from "./link";
-import { LinkBuilder } from "./link_builder";
-import { Process } from "./process";
-import { LinkReference } from "./ref";
-import {
+export { LinkBuilder } from "./link_builder";
+export { Process } from "./process";
+export { LinkReference } from "./ref";
+export {
   deserialize as deserializeSegment,
   fromObject as fromSegmentObject,
   Segment
 } from "./segment";
-import {
+export {
   fromObject as fromSignatureObject,
   sign,
   Signature,
   signLink
 } from "./signature";
 
-export {
-  constants,
-  deserializeLink,
-  deserializeSegment,
-  fromEvidenceObject,
-  fromLinkObject,
-  fromSegmentObject,
-  fromSignatureObject,
-  errors,
-  Evidence,
-  Link,
-  LinkBuilder,
-  LinkReference,
-  Process,
-  Segment,
-  sign,
-  Signature,
-  signLink
-};
+export { constants, errors };
