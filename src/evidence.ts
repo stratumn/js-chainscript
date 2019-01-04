@@ -31,6 +31,16 @@ export function fromProto(e: stratumn.chainscript.IEvidence): Evidence {
 }
 
 /**
+ * Deserialize an evidence.
+ * @param evidenceBytes encoded bytes.
+ * @returns the deserialized evidence.
+ */
+export function deserialize(evidenceBytes: Uint8Array): Evidence {
+  const pbEvidence = stratumn.chainscript.Evidence.decode(evidenceBytes);
+  return fromProto(pbEvidence);
+}
+
+/**
  * Convert a plain object to an evidence.
  * @param e plain object.
  */
@@ -98,6 +108,15 @@ export class Evidence {
     if (!this.proof || this.proof.length === 0) {
       throw errors.ErrEvidenceProofMissing;
     }
+  }
+
+  /**
+   * Serialize the evidence.
+   * @returns evidence bytes.
+   */
+  public serialize(): Uint8Array {
+    const e = stratumn.chainscript.Evidence.fromObject(this);
+    return stratumn.chainscript.Evidence.encode(e).finish();
   }
 
   /**

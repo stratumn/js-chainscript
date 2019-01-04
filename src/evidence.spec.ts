@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as errors from "./errors";
-import { Evidence, fromObject, fromProto } from "./evidence";
+import { deserialize, Evidence, fromObject, fromProto } from "./evidence";
 import { stratumn } from "./proto/chainscript_pb";
 
 describe("evidence", () => {
@@ -99,5 +99,20 @@ describe("evidence", () => {
     });
 
     expect(fromObject(plainObj)).toEqual(e);
+  });
+
+  it("serializes and deserializes", () => {
+    const e = new Evidence(
+      "1.0.0",
+      "btc",
+      "mainnet",
+      Uint8Array.from([42, 24])
+    );
+    const bytes = e.serialize();
+    const d = deserialize(bytes);
+    expect(Uint8Array.from(d.proof)).toEqual(e.proof);
+    expect(d.backend).toEqual(e.backend);
+    expect(d.provider).toEqual(e.provider);
+    expect(d.version).toEqual(e.version);
   });
 });
