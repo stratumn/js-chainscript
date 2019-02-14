@@ -1,6 +1,6 @@
 {
   "name": "@stratumn/js-chainscript",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Official JavaScript implementation of https://github.com/stratumn/chainscript.",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
@@ -34,7 +34,7 @@
   "homepage": "https://github.com/stratumn/js-chainscript#readme",
   "dependencies": {
     "@stratumn/canonicaljson": "^1.0.2",
-    "@stratumn/js-crypto": "0.1.0",
+    "@stratumn/js-crypto": "1.2.0",
     "@types/base64-js": "^1.2.5",
     "@types/jmespath": "^0.15.0",
     "@types/js-base64": "^2.3.1",

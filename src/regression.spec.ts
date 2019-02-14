@@ -32,12 +32,12 @@ describe("v1.0.0", () => {
       const segment = deserialize(b64.toByteArray(testCase.data));
       segment.validate();
 
-      segments[testCase.id] = segment;
+      segments.set(testCase.id, segment);
     }
   });
 
   it("simple-segment", () => {
-    const s = segments["simple-segment"] as Segment;
+    const s = segments.get("simple-segment")!;
 
     expect(s.link().version()).toBe("1.0.0");
     expect(s.link().data().name).toBe("ʙᴀᴛᴍᴀɴ");
@@ -59,7 +59,7 @@ describe("v1.0.0", () => {
   });
 
   it("segment-references", () => {
-    const s = segments["segment-references"] as Segment;
+    const s = segments.get("segment-references")!;
 
     expect(s.link().version()).toBe("1.0.0");
     expect(s.link().process().name).toBe("test_process");
@@ -78,7 +78,7 @@ describe("v1.0.0", () => {
   });
 
   it("segment-evidences", () => {
-    const s = segments["segment-evidences"] as Segment;
+    const s = segments.get("segment-evidences")!;
 
     expect(s.link().version()).toBe("1.0.0");
     expect(s.link().process().name).toBe("test_process");
@@ -86,19 +86,19 @@ describe("v1.0.0", () => {
 
     expect(s.evidences()).toHaveLength(2);
 
-    const btc = s.getEvidence("bitcoin", "testnet");
+    const btc = s.getEvidence("bitcoin", "testnet")!;
     expect(btc.version).toBe("0.1.0");
     expect(btc.proof).toHaveLength(1);
     expect(btc.proof[0]).toBe(42);
 
-    const eth = s.getEvidence("ethereum", "mainnet");
+    const eth = s.getEvidence("ethereum", "mainnet")!;
     expect(eth.version).toBe("1.0.3");
     expect(eth.proof).toHaveLength(1);
     expect(eth.proof[0]).toBe(24);
   });
 
   it("segment-signatures", () => {
-    const s = segments["segment-signatures"] as Segment;
+    const s = segments.get("segment-signatures")!;
 
     expect(s.link().version()).toBe("1.0.0");
     expect(s.link().process().name).toBe("test_process");
