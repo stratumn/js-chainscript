@@ -20,7 +20,6 @@ import { deserialize, fromObject, Link } from "./link";
 import { LinkBuilder } from "./link_builder";
 import { stratumn } from "./proto/chainscript_pb";
 import { LinkReference } from "./ref";
-import { Segment } from "./segment";
 import { Signature, signLink } from "./signature";
 
 /**
@@ -550,7 +549,7 @@ describe("link", () => {
       pb.meta.mapId = "m";
       pb.meta.process = new stratumn.chainscript.Process();
       pb.meta.process.name = "p";
-      pb.meta.refs.push(new stratumn.chainscript.LinkReference());
+      pb.meta.refs!.push(new stratumn.chainscript.LinkReference());
 
       const link = new Link(pb);
       expect(() => link.validate()).toThrowError(errors.ErrLinkProcessMissing);
