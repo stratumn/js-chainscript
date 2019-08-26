@@ -459,7 +459,9 @@ export class Link {
 
     const compatibleClients = [
       constants.ClientId,
-      "github.com/stratumn/go-chainscript"
+      "github.com/stratumn/go-chainscript",
+      "github.com/stratumn/java-chainscript",
+      "github.com/stratumn/csharp-chainscript"
     ];
 
     if (compatibleClients.indexOf(clientId) < 0) {
